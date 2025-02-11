@@ -10,7 +10,10 @@ import 'dayjs/locale/zh-cn'
 import { formatPredictionToMarkdown } from '@/utils/formatPrediction'
 import remarkGfm from 'remark-gfm'
 import { useRouter } from 'next/navigation'
+<<<<<<< HEAD
 import { Solar, Lunar } from 'lunar-typescript'
+=======
+>>>>>>> parent of cd4b067 (chore: Add lunar-typescript and improve type safety in prediction page)
 
 dayjs.locale('zh-cn')
 
@@ -43,12 +46,6 @@ const timeSlots = [
   ...slot,
   label: `${slot.name} (${String(slot.start).padStart(2, '0')}:00-${String(slot.end).padStart(2, '0')}:00)`
 }))
-
-// 修改 setResult 的类型
-interface ApiResponse {
-  id?: string;
-  content: any;
-}
 
 export default function PredictionPage() {
   // 基础状态管理
@@ -130,7 +127,11 @@ export default function PredictionPage() {
       const daYunArr = yun.getDaYun();
 
       // 获取大运信息
+<<<<<<< HEAD
       const daYunInfo = daYunArr.slice(0, 8).map((daYun: any) =>
+=======
+      const daYunInfo = daYunArr.slice(0, 8).map((daYun, index) =>
+>>>>>>> parent of cd4b067 (chore: Add lunar-typescript and improve type safety in prediction page)
         `${daYun.getStartYear()}年 ${daYun.getStartAge()}岁 ${daYun.getGanZhi()}`
       );
 
@@ -255,7 +256,7 @@ export default function PredictionPage() {
         response_mode: "streaming",
         user: formData.user || 'anonymous',
         conversation_id: formData.conversation_id
-      }) as ApiResponse;
+      })
 
       setResult({
         id: response.id || crypto.randomUUID(),
@@ -289,7 +290,7 @@ export default function PredictionPage() {
       }
 
       // 移除 Thinking... 部分
-      parsedContent = parsedContent.replace(/<details[\s\S]*?<\/details>/, '').trim()
+      parsedContent = parsedContent.replace(/<details.*?<\/details>/s, '').trim()
 
       // 处理表格部分
       const formatTables = (text: string) => {
