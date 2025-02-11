@@ -9,6 +9,10 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true
   },
+  sassOptions: {
+    includePaths: ['./app/styles'],
+    prependData: `@import "markdown.scss";`
+  },
   webpack: (config, { isServer }) => {
     // 优化构建大小
     config.optimization = {
