@@ -11,7 +11,10 @@ import { formatPredictionToMarkdown } from '@/utils/formatPrediction'
 import remarkGfm from 'remark-gfm'
 import { useRouter } from 'next/navigation'
 <<<<<<< HEAD
+<<<<<<< HEAD
 import { Solar, Lunar } from 'lunar-typescript'
+=======
+>>>>>>> parent of cd4b067 (chore: Add lunar-typescript and improve type safety in prediction page)
 =======
 >>>>>>> parent of cd4b067 (chore: Add lunar-typescript and improve type safety in prediction page)
 
@@ -128,7 +131,11 @@ export default function PredictionPage() {
 
       // 获取大运信息
 <<<<<<< HEAD
+<<<<<<< HEAD
       const daYunInfo = daYunArr.slice(0, 8).map((daYun: any) =>
+=======
+      const daYunInfo = daYunArr.slice(0, 8).map((daYun, index) =>
+>>>>>>> parent of cd4b067 (chore: Add lunar-typescript and improve type safety in prediction page)
 =======
       const daYunInfo = daYunArr.slice(0, 8).map((daYun, index) =>
 >>>>>>> parent of cd4b067 (chore: Add lunar-typescript and improve type safety in prediction page)
