@@ -3,7 +3,7 @@ import { APP_INFO } from '@/config'
 import Link from 'next/link'
 
 import './styles/globals.css'
-import './styles/markdown.scss'
+import './styles/markdown.css'
 
 export const metadata: Metadata = {
   title: APP_INFO.title,
@@ -25,15 +25,15 @@ export default function RootLayout({
                 未来变量观测局
               </Link>
               <div className="flex gap-4">
-                <Link 
-                  href="/prediction" 
+                <Link
+                  href="/prediction"
                   className="px-4 py-2 rounded-md hover:bg-gray-100"
                 >
                   开始预测
                 </Link>
               </div>
             </nav>
-            
+
             <main className="flex-grow">
               {children}
             </main>
@@ -42,9 +42,9 @@ export default function RootLayout({
               <p>© {new Date().getFullYear()} 未来变量观测局</p>
               <p className="mt-1">由 荔福路绅士 倾情奉献</p>
               <p className="mt-1">
-                <a 
-                  href="https://creativecommons.org/licenses/by-nc-sa/4.0/" 
-                  target="_blank" 
+                <a
+                  href="https://creativecommons.org/licenses/by-nc-sa/4.0/"
+                  target="_blank"
                   rel="noopener noreferrer"
                   className="hover:text-gray-700"
                 >
