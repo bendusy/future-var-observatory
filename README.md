@@ -146,169 +146,6 @@ npm start
 # 启动成功后，打开浏览器访问：http://localhost:33896
 ```
 
-## Docker 部署
-
-### 方法一：使用预构建镜像（推荐小白用户）
-
-1. 安装 Docker
-   - Windows 用户：
-     - 访问 [Docker Desktop 官网](https://www.docker.com/products/docker-desktop)
-     - 下载并安装 Docker Desktop for Windows
-     - 安装完成后，在系统托盘中可以看到 Docker 图标
-     - 右键点击 Docker 图标，确认 Docker Desktop 正在运行
-     - 首次运行可能需要重启电脑
-
-   - Mac 用户：
-     - 访问 [Docker Desktop 官网](https://www.docker.com/products/docker-desktop)
-     - 下载并安装 Docker Desktop for Mac
-     - 安装完成后，在菜单栏可以看到 Docker 图标
-     - 点击 Docker 图标，确认 Docker Desktop 正在运行
-
-   - Linux 用户：
-
-     ```bash
-     # Ubuntu/Debian
-     sudo apt update
-     sudo apt install docker.io
-     sudo systemctl start docker
-     sudo systemctl enable docker
-     
-     # CentOS
-     sudo yum install docker
-     sudo systemctl start docker
-     sudo systemctl enable docker
-     ```
-
-2. 验证 Docker 安装
-
-   ```bash
-   # 检查 Docker 版本
-   docker --version
-   
-   # 运行测试容器
-   docker run hello-world
-   ```
-
-3. 拉取镜像
-
-   ```bash
-   # 打开终端（Windows 用户使用 PowerShell），输入以下命令
-   docker pull yobservatory/future-var-observatory:latest
-   
-   # 查看已下载的镜像
-   docker images
-   ```
-
-4. 准备环境变量
-   - 创建一个文本文件 `.env`，填入以下内容：
-
-     ```env
-     NEXT_PUBLIC_APP_ID=your_app_id
-     NEXT_PUBLIC_APP_KEY=your_api_key
-     NEXT_PUBLIC_API_URL=https://api.dify.ai/v1
-     ```
-
-   - 将 `your_app_id` 和 `your_api_key` 替换为你的实际配置
-
-5. 运行容器
-
-   ```bash
-   # 使用环境变量文件运行（推荐）
-   docker run -d \
-     -p 33896:33896 \
-     --env-file .env \
-     --name future-var-observatory \
-     yobservatory/future-var-observatory:latest
-
-   # 或者直接指定环境变量
-   docker run -d \
-     -p 33896:33896 \
-     -e NEXT_PUBLIC_APP_ID=your_app_id \
-     -e NEXT_PUBLIC_APP_KEY=your_api_key \
-     -e NEXT_PUBLIC_API_URL=your_api_url \
-     --name future-var-observatory \
-     yobservatory/future-var-observatory:latest
-   ```
-
-   > 注意：
-   > - Windows PowerShell 用户使用反引号 ` 换行
-   > - Windows CMD 用户需要将命令写在一行
-   > - 环境变量需要替换为你的实际配置
-   > - `-d` 参数表示在后台运行
-   > - `--name` 参数指定容器名称
-   > - `-p` 参数指定端口映射，格式为 `主机端口:容器端口`
-
-6. 检查容器运行状态
-
-   ```bash
-   # 查看所有容器状态
-   docker ps -a
-   
-   # 查看正在运行的容器
-   docker ps
-   
-   # 查看容器日志
-   docker logs future-var-observatory
-   
-   # 实时查看日志
-   docker logs -f future-var-observatory
-   ```
-
-7. 访问应用
-   - 打开浏览器，访问 <http://localhost:33896>
-   - 如果需要远程访问，将 localhost 替换为服务器 IP 地址
-   - 首次访问可能需要等待几秒钟
-
-8. 常用命令
-
-   ```bash
-   # 容器管理
-   docker stop future-var-observatory    # 停止容器
-   docker start future-var-observatory   # 启动容器
-   docker restart future-var-observatory # 重启容器
-   docker rm -f future-var-observatory   # 删除容器
-
-   # 镜像管理
-   docker images                         # 查看所有镜像
-   docker rmi yobservatory/future-var-observatory:latest  # 删除镜像
-   
-   # 资源清理
-   docker system prune                   # 清理未使用的资源
-   docker system prune -a               # 清理所有未使用的资源（包括镜像）
-   ```
-
-9. 常见问题解决
-   - 端口被占用：
-
-     ```bash
-     # 查看端口占用
-     netstat -ano | findstr "33896"    # Windows
-     lsof -i :33896                    # Linux/Mac
-     
-     # 修改端口映射
-     docker run -p 33897:33896 ...     # 使用其他端口
-     ```
-
-   - 容器无法启动：
-
-     ```bash
-     # 查看详细日志
-     docker logs future-var-observatory
-     
-     # 以交互模式运行容器排查问题
-     docker run -it --rm yobservatory/future-var-observatory:latest /bin/sh
-     ```
-
-   - 环境变量问题：
-
-     ```bash
-     # 查看容器环境变量
-     docker exec future-var-observatory env
-     
-     # 重新创建容器并验证环境变量
-     docker run --rm -it --env-file .env yobservatory/future-var-observatory:latest env
-     ```
-
 ## 项目结构
 
 ```
@@ -348,6 +185,78 @@ npm run test:watch
 - 镜像大小：约 248MB
 - 基础镜像：node:19-alpine
 - 默认端口：33896
+
+## 常见问题
+
+### 1. 克隆项目时提示"目录已存在"
+
+如果看到以下错误：
+
+```bash
+fatal: destination path 'webapp-8zi' already exists and is not an empty directory.
+```
+
+解决方法：
+
+```bash
+# 方法1：删除已存在的目录后重新克隆
+rm -rf webapp-8zi    # Linux/Mac
+rd /s /q webapp-8zi  # Windows
+git clone https://github.com/bendusy/webapp-8zi.git
+
+# 方法2：进入已存在的目录，拉取最新代码
+cd webapp-8zi
+git fetch origin
+git reset --hard origin/main
+
+# 方法3：换个目录名称重新克隆
+git clone https://github.com/bendusy/webapp-8zi.git webapp-8zi-new
+```
+
+### 2. Node.js 安装失败
+
+如果自动安装失败，可以：
+
+1. 访问 [Node.js 官网](https://nodejs.org/)
+2. 下载 22.x 版本的安装包
+3. 手动安装
+
+### 3. npm 安装依赖失败
+
+如果看到网络超时等错误，可以：
+
+```bash
+# 方法1：使用淘宝镜像
+npm config set registry https://registry.npmmirror.com
+npm install
+
+# 方法2：清除缓存后重试
+npm cache clean --force
+npm install
+
+# 方法3：删除 node_modules 后重装
+rm -rf node_modules    # Linux/Mac
+rd /s /q node_modules  # Windows
+npm install
+```
+
+### 4. 启动服务时端口被占用
+
+如果看到端口 33896 被占用，可以：
+
+```bash
+# 方法1：找到并关闭占用端口的进程
+# Windows:
+netstat -ano | findstr "33896"
+taskkill /F /PID 对应的进程ID
+
+# Linux/Mac:
+lsof -i :33896
+kill -9 对应的进程ID
+
+# 方法2：修改 .env.local 文件，使用其他端口
+echo "PORT=33897" >> .env.local  # 使用 33897 端口
+```
 
 ## 许可证
 
