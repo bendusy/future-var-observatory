@@ -80,14 +80,51 @@ function Install-PM2 {
     }
 }
 
+# 检查依赖是否已安装
+function Test-Dependencies {
+    # 检查 node_modules 目录
+    if (Test-Path "node_modules") {
+        Write-Host "检测到依赖已安装，跳过安装步骤..." -ForegroundColor Green
+        return $true
+    }
+    # 检查 package-lock.json
+    if (Test-Path "package-lock.json") {
+        Write-Host "检测到 package-lock.json，是否重新安装依赖？[y/N]" -ForegroundColor Yellow
+        $reinstallChoice = Read-Host
+        if ($reinstallChoice -ne "y" -and $reinstallChoice -ne "Y") {
+            return $true
+        }
+    }
+    return $false
+}
+
 # 安装依赖
-Write-Host "正在安装依赖..."
-npm install
+if (-not (Test-Dependencies)) {
+    Write-Host "正在安装依赖..." -ForegroundColor Yellow
+    npm install
+}
+
+# 检查 node-windows 是否已安装
+function Test-NodeWindows {
+    try {
+        $modulePath = Join-Path (Get-Location) "node_modules\node-windows"
+        if (Test-Path $modulePath) {
+            Write-Host "检测到 node-windows 已安装" -ForegroundColor Green
+            return $true
+        }
+        return $false
+    }
+    catch {
+        return $false
+    }
+}
 
 # 安装 node-windows
-Write-Host "正在安装 node-windows..." -ForegroundColor Yellow
-npm install -g node-windows
-npm link node-windows
+if (-not (Test-NodeWindows)) {
+    Write-Host "正在安装 node-windows..." -ForegroundColor Yellow
+    npm install node-windows --save
+    npm link node-windows
+}
 
 # 创建 Windows 服务安装脚本
 $serviceScript = @"
@@ -97,8 +134,8 @@ const path = require('path');
 const svc = new Service({
     name: 'WebApp8Zi',
     description: '未来变量观测局 Web 服务',
-    script: path.join(process.cwd(), 'node_modules', 'next', 'dist', 'bin', 'next'),
-    scriptOptions: 'start -p 33896',
+    script: path.join(process.cwd(), '.next', 'standalone', 'server.js'),
+    scriptOptions: '-p 33896',
     nodeOptions: '--harmony',
     workingDirectory: process.cwd(),
     allowServiceLogon: true

@@ -65,9 +65,30 @@ install_pm2() {
     fi
 }
 
+# 检查依赖是否已安装
+check_dependencies() {
+    # 检查 node_modules 目录
+    if [ -d "node_modules" ]; then
+        echo "检测到依赖已安装，跳过安装步骤..."
+        return 0
+    fi
+    
+    # 检查 package-lock.json
+    if [ -f "package-lock.json" ]; then
+        echo "检测到 package-lock.json，是否重新安装依赖？[y/N]"
+        read -r reinstall_choice
+        if [[ ! $reinstall_choice =~ ^[Yy]$ ]]; then
+            return 0
+        fi
+    fi
+    return 1
+}
+
 # 安装依赖
-echo "正在安装依赖..."
-npm install
+if ! check_dependencies; then
+    echo "正在安装依赖..."
+    npm install
+fi
 
 # 安装 pm2
 install_pm2
@@ -124,8 +145,8 @@ echo "正在启动服务..."
 pm2 stop webapp-8zi 2>/dev/null || true
 pm2 delete webapp-8zi 2>/dev/null || true
 
-# 启动新实例
-pm2 start npm --name "webapp-8zi" -- start
+# 启动新实例 (使用 standalone 模式)
+pm2 start .next/standalone/server.js --name "webapp-8zi" -- -p 33896
 
 # 保存 pm2 配置
 pm2 save
