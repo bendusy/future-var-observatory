@@ -1,5 +1,4 @@
 import { type NextRequest } from 'next/server'
-import { DifyClient } from '@dify/client'
 import { v4 } from 'uuid'
 import { API_KEY, API_URL, APP_ID } from '@/config'
 
@@ -18,4 +17,19 @@ export const setSession = (sessionId: string) => {
   return { 'Set-Cookie': `session_id=${sessionId}` }
 }
 
-export const client = new DifyClient(API_KEY, API_URL || undefined)
+export async function fetchPredict(data: any) {
+  const response = await fetch(`${API_URL}/chat-messages`, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${API_KEY}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(data)
+  });
+
+  if (!response.ok) {
+    throw new Error('Prediction request failed');
+  }
+
+  return response.json();
+}
