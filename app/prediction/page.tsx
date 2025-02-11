@@ -212,7 +212,7 @@ export default function PredictionPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-4">
-      <h1 className="text-2xl font-bold text-center mb-4">命理分析</h1>
+      <h1 className="text-2xl font-bold text-center mb-4 dark:text-dark-text">命理分析</h1>
 
       <Modal
         title="免责声明"
@@ -220,8 +220,9 @@ export default function PredictionPage() {
         onOk={() => setIsDisclaimerVisible(false)}
         onCancel={() => setIsDisclaimerVisible(false)}
         width={600}
+        className="dark:bg-dark-container"
       >
-        <div className="text-sm">
+        <div className="text-sm dark:text-dark-text">
           <p className="mb-2">本系统提供的命理分析和预测结果仅供参考，不构成任何形式的建议或指导：</p>
           <ul className="list-disc pl-5 space-y-1">
             <li>分析结果基于传统命理学理论，不具有科学依据</li>
@@ -230,7 +231,7 @@ export default function PredictionPage() {
             <li>系统不收集、不存储任何个人隐私信息</li>
             <li>如有任何疑问，请及时与我们联系</li>
           </ul>
-          <p className="mt-2 text-gray-500">继续使用表示您已阅读并同意以上声明</p>
+          <p className="mt-2 text-gray-500 dark:text-dark-text-secondary">继续使用表示您已阅读并同意以上声明</p>
         </div>
       </Modal>
 
@@ -244,16 +245,17 @@ export default function PredictionPage() {
           birthHour: 12,
           agreement: false
         }}
+        className="dark:text-dark-text"
       >
         <Form.Item
           label="性别"
           name="gender"
           rules={[{ required: true, message: '请选择性别' }]}
         >
-          <Radio.Group buttonStyle="solid" className="w-full">
-            <Radio.Button value="male" className="w-1/3 text-center">👨 男</Radio.Button>
-            <Radio.Button value="female" className="w-1/3 text-center">👩 女</Radio.Button>
-            <Radio.Button value="other" className="w-1/3 text-center">⭐ 其他</Radio.Button>
+          <Radio.Group buttonStyle="solid" className="w-full dark:bg-dark-container">
+            <Radio.Button value="male" className="w-1/3 text-center dark:text-dark-text dark:border-dark-border">👨 男</Radio.Button>
+            <Radio.Button value="female" className="w-1/3 text-center dark:text-dark-text dark:border-dark-border">👩 女</Radio.Button>
+            <Radio.Button value="other" className="w-1/3 text-center dark:text-dark-text dark:border-dark-border">⭐ 其他</Radio.Button>
           </Radio.Group>
         </Form.Item>
 
@@ -264,10 +266,10 @@ export default function PredictionPage() {
           <Radio.Group
             onChange={(e) => setCalendarType(e.target.value)}
             buttonStyle="solid"
-            className="w-full"
+            className="w-full dark:bg-dark-container"
           >
-            <Radio.Button value="solar" className="w-1/2 text-center">📅 公历</Radio.Button>
-            <Radio.Button value="lunar" className="w-1/2 text-center">🏮 农历</Radio.Button>
+            <Radio.Button value="solar" className="w-1/2 text-center dark:text-dark-text dark:border-dark-border">📅 公历</Radio.Button>
+            <Radio.Button value="lunar" className="w-1/2 text-center dark:text-dark-text dark:border-dark-border">🏮 农历</Radio.Button>
           </Radio.Group>
         </Form.Item>
 
@@ -343,12 +345,12 @@ export default function PredictionPage() {
         </div>
 
         {lunarInfo && (
-          <div className="my-4 p-4 bg-gray-50 rounded-lg">
+          <div className="my-4 p-4 bg-gray-50 dark:bg-dark-container rounded-lg">
             <Descriptions
               bordered
               size="small"
               column={{ xs: 1, sm: 2 }}
-              className="bg-white rounded-lg"
+              className="bg-white dark:bg-dark-container rounded-lg"
             >
               <Descriptions.Item label="农历日期" span={2}>
                 {lunarInfo.lunarDate}
@@ -429,8 +431,8 @@ export default function PredictionPage() {
             >
               <Checkbox.Group className="grid grid-cols-2 gap-4">
                 {directions.map(d => (
-                  <Checkbox key={d.value} value={d.value} className="bg-white p-3 rounded-lg shadow-sm border hover:shadow-md transition-shadow">
-                    <span className="flex items-center gap-2">
+                  <Checkbox key={d.value} value={d.value} className="bg-white dark:bg-dark-container p-3 rounded-lg shadow-sm border dark:border-dark-border hover:shadow-md transition-shadow">
+                    <span className="flex items-center gap-2 dark:text-dark-text">
                       <span className="text-xl">{d.icon}</span>
                       <span>{d.label}</span>
                     </span>
@@ -445,7 +447,7 @@ export default function PredictionPage() {
               <TextArea
                 placeholder="其他感兴趣的预测方向（选填，每行一个）"
                 autoSize={{ minRows: 2, maxRows: 6 }}
-                className="rounded-lg"
+                className="rounded-lg dark:bg-dark-container dark:text-dark-text dark:border-dark-border"
               />
             </Form.Item>
           </div>
@@ -463,9 +465,9 @@ export default function PredictionPage() {
             },
           ]}
         >
-          <Checkbox>
+          <Checkbox className="dark:text-dark-text">
             我已阅读并同意
-            <Button type="link" className="p-0" onClick={() => setIsDisclaimerVisible(true)}>
+            <Button type="link" className="p-0 dark:text-primary-400" onClick={() => setIsDisclaimerVisible(true)}>
               《免责声明》
             </Button>
           </Checkbox>
@@ -478,7 +480,7 @@ export default function PredictionPage() {
             loading={loading}
             block
             size="large"
-            className="h-12 text-lg"
+            className="h-12 text-lg dark:bg-primary-600 dark:text-dark-text dark:border-dark-border"
           >
             {loading ? '正在推算命运轨迹...' : '开始预测'}
           </Button>
@@ -486,14 +488,14 @@ export default function PredictionPage() {
       </Form>
 
       {error && (
-        <div className="mt-4 p-4 bg-red-50 text-red-500 rounded-lg">
+        <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-500 dark:text-red-400 rounded-lg">
           {error}
         </div>
       )}
 
       {result && (
-        <Card className="mt-8 rounded-lg shadow-lg">
-          <div className="text-sm text-gray-500 mb-2">
+        <Card className="mt-8 rounded-lg shadow-lg dark:bg-dark-container">
+          <div className="text-sm text-gray-500 dark:text-dark-text-secondary mb-2">
             预测时间: {dayjs(result.timestamp).format('YYYY-MM-DD HH:mm:ss')}
           </div>
           <article className="prose prose-sm max-w-none dark:prose-invert">
@@ -502,45 +504,45 @@ export default function PredictionPage() {
               components={{
                 table: ({ node, ...props }) => (
                   <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200" {...props} />
+                    <table className="min-w-full divide-y divide-gray-200 dark:divide-dark-border" {...props} />
                   </div>
                 ),
                 th: ({ node, ...props }) => (
-                  <th className="px-3 py-2 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider" {...props} />
+                  <th className="px-3 py-2 bg-gray-50 dark:bg-dark-container text-left text-xs font-medium text-gray-500 dark:text-dark-text-secondary uppercase tracking-wider" {...props} />
                 ),
                 td: ({ node, ...props }) => (
-                  <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500" {...props} />
+                  <td className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 dark:text-dark-text" {...props} />
                 ),
                 h1: ({ node, ...props }) => (
-                  <h1 className="text-2xl font-bold mb-4" {...props} />
+                  <h1 className="text-2xl font-bold mb-4 dark:text-dark-text" {...props} />
                 ),
                 h2: ({ node, ...props }) => (
-                  <h2 className="text-xl font-bold mb-3" {...props} />
+                  <h2 className="text-xl font-bold mb-3 dark:text-dark-text" {...props} />
                 ),
                 h3: ({ node, ...props }) => (
-                  <h3 className="text-lg font-bold mb-2" {...props} />
+                  <h3 className="text-lg font-bold mb-2 dark:text-dark-text" {...props} />
                 ),
                 p: ({ node, ...props }) => (
-                  <p className="mb-4 leading-relaxed" {...props} />
+                  <p className="mb-4 leading-relaxed dark:text-dark-text" {...props} />
                 ),
                 ul: ({ node, ...props }) => (
-                  <ul className="list-disc pl-5 mb-4" {...props} />
+                  <ul className="list-disc pl-5 mb-4 dark:text-dark-text" {...props} />
                 ),
                 ol: ({ node, ...props }) => (
-                  <ol className="list-decimal pl-5 mb-4" {...props} />
+                  <ol className="list-decimal pl-5 mb-4 dark:text-dark-text" {...props} />
                 ),
                 li: ({ node, ...props }) => (
-                  <li className="mb-1" {...props} />
+                  <li className="mb-1 dark:text-dark-text" {...props} />
                 ),
                 blockquote: ({ node, ...props }) => (
-                  <blockquote className="border-l-4 border-gray-200 pl-4 italic" {...props} />
+                  <blockquote className="border-l-4 border-gray-200 dark:border-dark-border pl-4 italic dark:text-dark-text" {...props} />
                 ),
                 code: ({ node, inline, ...props }) => (
                   inline ? (
-                    <code className="px-1 py-0.5 bg-gray-100 rounded text-sm" {...props} />
+                    <code className="px-1 py-0.5 bg-gray-100 dark:bg-dark-container rounded text-sm dark:text-dark-text" {...props} />
                   ) : (
-                    <pre className="p-4 bg-gray-100 rounded-lg overflow-x-auto">
-                      <code className="text-sm" {...props} />
+                    <pre className="p-4 bg-gray-100 dark:bg-dark-container rounded-lg overflow-x-auto">
+                      <code className="text-sm dark:text-dark-text" {...props} />
                     </pre>
                   )
                 )

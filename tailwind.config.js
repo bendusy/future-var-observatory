@@ -1,9 +1,10 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './app/**/*.{js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}',
+    './app/**/*.{js,ts,jsx,tsx,mdx}',
+    './components/**/*.{js,ts,jsx,tsx,mdx}'
   ],
+  darkMode: 'media', // 使用系统主题
   theme: {
     extend: {
       colors: {
@@ -46,6 +47,28 @@ module.exports = {
           25: '#F5F8FF',
           100: '#E0EAFF',
           600: '#444CE7',
+        },
+        // 亮色模式
+        'primary': {
+          DEFAULT: '#1677ff',
+          '50': '#f0f7ff',
+          '100': '#e6f4ff',
+          '200': '#bae0ff',
+          '300': '#91caff',
+          '400': '#69b1ff',
+          '500': '#4096ff',
+          '600': '#1677ff',
+          '700': '#0958d9',
+          '800': '#003eb3',
+          '900': '#002c8c',
+        },
+        // 暗色模式
+        'dark': {
+          'bg': '#141414',
+          'container': '#1f1f1f',
+          'border': '#424242',
+          'text': '#ffffff',
+          'text-secondary': '#a3a3a3',
         },
       },
       screens: {

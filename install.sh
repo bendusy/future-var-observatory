@@ -69,8 +69,43 @@ install_pm2() {
 check_dependencies() {
     # 检查 node_modules 目录
     if [ -d "node_modules" ]; then
-        echo "检测到依赖已安装，跳过安装步骤..."
-        return 0
+        echo "检测到依赖已安装，检查核心依赖完整性..."
+        
+        # 检查核心依赖
+        core_dependencies=(
+            "next"
+            "react"
+            "react-dom"
+            "typescript"
+            "tailwindcss"
+            "antd"
+            "lunar-typescript"
+            "dayjs"
+            "react-markdown"
+            "remark-gfm"
+            "remark-breaks"
+            "@tailwindcss/typography"
+        )
+        
+        missing_deps=()
+        for dep in "${core_dependencies[@]}"; do
+            if [ ! -d "node_modules/$dep" ]; then
+                missing_deps+=("$dep")
+            fi
+        done
+        
+        if [ ${#missing_deps[@]} -gt 0 ]; then
+            echo "发现以下核心依赖缺失:"
+            printf '%s\n' "${missing_deps[@]/#/- }"
+            echo "是否重新安装依赖？[y/N]"
+            read -r reinstall_choice
+            if [[ $reinstall_choice =~ ^[Yy]$ ]]; then
+                return 1
+            fi
+        else
+            echo "核心依赖完整性检查通过"
+            return 0
+        fi
     fi
     
     # 检查 package-lock.json
@@ -87,7 +122,15 @@ check_dependencies() {
 # 安装依赖
 if ! check_dependencies; then
     echo "正在安装依赖..."
-    npm install
+    if ! npm install; then
+        echo "依赖安装失败，尝试使用淘宝镜像重新安装..."
+        npm config set registry https://registry.npmmirror.com
+        if ! npm install; then
+            echo "依赖安装失败，请检查网络连接或手动安装"
+            exit 1
+        fi
+    fi
+    echo "依赖安装完成"
 fi
 
 # 安装 pm2

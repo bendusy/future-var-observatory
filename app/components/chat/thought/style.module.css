@@ -1,7 +1,7 @@
 .wrap {
-  background-color: rgba(255, 255, 255, 0.92);
+  @apply bg-white/90 dark:bg-dark-container/90;
 }
 
-.wrapHoverEffect:hover{
-  box-shadow: 0px 1px 2px 0px rgba(16, 24, 40, 0.06), 0px 1px 3px 0px rgba(16, 24, 40, 0.1);
+.wrapHoverEffect:hover {
+  @apply shadow-sm dark:shadow-none dark:bg-dark-container;
 }

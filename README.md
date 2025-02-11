@@ -10,19 +10,46 @@
 - 大运流年预测
 - 多维度运势分析
 - 响应式界面设计
+- 支持暗色模式
+- 系统主题自动切换
+- 完整的八字排盘
+- 精准的五行纳音
+- 详细的大运流年
+- 多维度运势分析
+- 直观的数据可视化
+- 完整的免责声明
+- 优雅的暗色模式
 
 ## 技术栈
 
 - Next.js 14
-- TypeScript
-- Tailwind CSS
-- Ant Design
+- TypeScript 5
+- Tailwind CSS 3
+- Ant Design 5
 - lunar-typescript
+- dayjs
+- react-markdown
+- remark-gfm
+- remark-breaks
 
 ## 开发环境要求
 
 - Node.js >= 22 (脚本会自动安装)
 - npm >= 10 (脚本会自动安装/更新)
+
+## 依赖说明
+
+主要依赖包及其用途:
+
+- `lunar-typescript`: 农历日期转换和八字计算
+- `antd`: UI组件库
+- `tailwindcss`: 原子化CSS框架
+- `@tailwindcss/typography`: Markdown样式支持
+- `dayjs`: 日期处理工具
+- `react-markdown`: Markdown渲染
+- `remark-gfm`: GitHub风格Markdown支持
+- `remark-breaks`: 支持换行符
+- `pm2`: Node.js进程管理
 
 ## 安装部署
 
@@ -282,3 +309,38 @@ echo "PORT=33897" >> .env.local  # 使用 33897 端口
 ## 许可证
 
 MIT License
+
+## 功能说明
+
+### 1. 八字排盘
+
+- 支持公历/农历日期选择
+- 自动计算八字信息
+- 显示五行属性
+- 计算纳音五行
+- 分析十神关系
+- 排列大运流年
+
+### 2. 运势预测
+
+- 事业发展分析
+- 感情状况预测
+- 财运趋势判断
+- 健康状况评估
+- 自定义预测方向
+
+### 3. 界面特性
+
+- 响应式设计
+- 暗色模式支持
+- 系统主题跟随
+- 优雅的动画过渡
+- 直观的数据展示
+
+### 4. 其他功能
+
+- 完整的错误处理
+- 用户隐私保护
+- 免责声明
+- 优雅降级处理
+- 性能优化
