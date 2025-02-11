@@ -10,8 +10,7 @@ const nextConfig = {
     ignoreDuringBuilds: true
   },
   sassOptions: {
-    includePaths: ['./app/styles'],
-    prependData: `@import "markdown.scss";`
+    includePaths: ['./app/styles']
   },
   webpack: (config, { isServer }) => {
     // 优化构建大小
