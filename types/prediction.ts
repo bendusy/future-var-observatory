@@ -24,26 +24,14 @@ export interface PredictionQuery {
 
 export interface PredictionForm {
   gender: 'male' | 'female' | 'other'
+  birthDate: string
+  birthTime: string
   calendarType: 'solar' | 'lunar'
-  birthDate: string    // ISO 格式的日期字符串
-  birthTime: string    // HH:mm 格式
   direction: string[]
   customDirections?: string
-  query?: string
-  response_mode?: string
   user?: string
   conversation_id?: string
-  lunarInfo?: {
-    lunarDate: string
-    bazi: string
-    wuxing: string
-    nayin: string
-    shishen: string
-    yun?: {
-      startInfo: string
-      daYun: string[]
-    }
-  }
+  response_mode?: 'streaming' | 'blocking'
 }
 
 export interface BaziInfo {
@@ -68,8 +56,12 @@ export interface PredictionResult {
   id: string
   userId: string
   timestamp: number
-  inputs: PredictionInput
-  result: string
+  inputs: {
+    gender: string
+    birthDateTime: string
+    directions: string[]
+  }
+  result: any
 }
 
 // 定义预测方向的枚举

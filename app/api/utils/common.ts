@@ -24,12 +24,15 @@ export async function fetchPredict(data: any) {
       'Authorization': `Bearer ${API_KEY}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(data)
+    body: JSON.stringify({
+      app_id: APP_ID,
+      ...data
+    })
   });
 
   if (!response.ok) {
-    throw new Error('Prediction request failed');
+    throw new Error('预测请求失败')
   }
 
-  return response.json();
+  return response.json()
 }

@@ -4,13 +4,24 @@ import { logPrediction } from './logger'
 import { Lunar, Solar } from 'lunar-javascript'
 
 export async function fetchPredict(data: PredictionForm) {
+  // 计算八字信息
+  const bazi = calculateBazi(data.birthDate, data.birthTime, data.calendarType === 'lunar')
+
   try {
-    const response = await fetch('/api/predict', {
+    const response = await fetch(`${API_URL}/chat-messages`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`,
       },
-      body: JSON.stringify(data)
+      body: JSON.stringify({
+        app_id: APP_ID,
+        inputs: {},
+        query: generatePrompt(data, bazi),
+        user: data.user || "anonymous",
+        response_mode: data.response_mode || "blocking",
+        conversation_id: data.conversation_id || ''
+      })
     })
 
     if (!response.ok) {
@@ -21,7 +32,7 @@ export async function fetchPredict(data: PredictionForm) {
 
     // 记录预测日志
     await logPrediction({
-      userId: 'anonymous',
+      userId: data.user || 'anonymous',
       timestamp: Date.now(),
       inputs: {
         gender: data.gender,
@@ -31,10 +42,7 @@ export async function fetchPredict(data: PredictionForm) {
       result: result.answer
     })
 
-    return {
-      content: result.answer,
-      timestamp: Date.now()
-    }
+    return result
   } catch (error) {
     console.error('预测失败:', error)
     throw error
