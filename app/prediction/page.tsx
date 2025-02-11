@@ -10,7 +10,7 @@ import 'dayjs/locale/zh-cn'
 import { formatPredictionToMarkdown } from '@/utils/formatPrediction'
 import remarkGfm from 'remark-gfm'
 import { useRouter } from 'next/navigation'
-import { Solar } from 'lunar-typescript'
+import { Solar, Lunar } from 'lunar-typescript'
 
 dayjs.locale('zh-cn')
 
@@ -93,29 +93,53 @@ export default function PredictionPage() {
       const lunar = solar.getLunar();
       const eightChar = lunar.getEightChar();
 
+      // 添加类型声明
+      interface EightChar {
+        getYear: () => string;
+        getMonth: () => string;
+        getDay: () => string;
+        getTime: () => string;
+        getYearWuXing: () => string;
+        getMonthWuXing: () => string;
+        getDayWuXing: () => string;
+        getTimeWuXing: () => string;
+        getYearNaYin: () => string;
+        getMonthNaYin: () => string;
+        getDayNaYin: () => string;
+        getTimeNaYin: () => string;
+        getYearShiShenGan: () => string;
+        getMonthShiShenGan: () => string;
+        getDayShiShenGan: () => string;
+        getTimeShiShenGan: () => string;
+        getYun: (gender: number) => any;
+      }
+
+      // 类型断言
+      const typedEightChar = eightChar as unknown as EightChar;
+
       // 获取完整的八字信息
       const baziInfo = {
-        year: eightChar.getYear(),
-        month: eightChar.getMonth(),
-        day: eightChar.getDay(),
-        time: hour !== undefined ? eightChar.getTime() : ''
+        year: typedEightChar.getYear(),
+        month: typedEightChar.getMonth(),
+        day: typedEightChar.getDay(),
+        time: hour !== undefined ? typedEightChar.getTime() : ''
       };
 
       // 计算大运
-      const yun = eightChar.getYun(form.getFieldValue('gender') === 'male' ? 1 : 0);
+      const yun = typedEightChar.getYun(form.getFieldValue('gender') === 'male' ? 1 : 0);
       const daYunArr = yun.getDaYun();
 
       // 获取大运信息
-      const daYunInfo = daYunArr.slice(0, 8).map((daYun: any, index: number) =>
+      const daYunInfo = daYunArr.slice(0, 8).map((daYun: any) =>
         `${daYun.getStartYear()}年 ${daYun.getStartAge()}岁 ${daYun.getGanZhi()}`
       );
 
       return {
         lunarDate: `${lunar.getYearInChinese()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`,
         bazi: `${baziInfo.year} ${baziInfo.month} ${baziInfo.day} ${baziInfo.time}`.trim(),
-        wuxing: `${eightChar.getYearWuXing()} ${eightChar.getMonthWuXing()} ${eightChar.getDayWuXing()} ${eightChar.getTimeWuXing()}`.trim(),
-        nayin: `${eightChar.getYearNaYin()} ${eightChar.getMonthNaYin()} ${eightChar.getDayNaYin()} ${eightChar.getTimeNaYin()}`.trim(),
-        shishen: `年干:${eightChar.getYearShiShenGan()} 月干:${eightChar.getMonthShiShenGan()} 日干:${eightChar.getDayShiShenGan()} 时干:${eightChar.getTimeShiShenGan()}`,
+        wuxing: `${typedEightChar.getYearWuXing()} ${typedEightChar.getMonthWuXing()} ${typedEightChar.getDayWuXing()} ${typedEightChar.getTimeWuXing()}`.trim(),
+        nayin: `${typedEightChar.getYearNaYin()} ${typedEightChar.getMonthNaYin()} ${typedEightChar.getDayNaYin()} ${typedEightChar.getTimeNaYin()}`.trim(),
+        shishen: `年干:${typedEightChar.getYearShiShenGan()} 月干:${typedEightChar.getMonthShiShenGan()} 日干:${typedEightChar.getDayShiShenGan()} 时干:${typedEightChar.getTimeShiShenGan()}`,
         yun: {
           startInfo: `出生${yun.getStartYear()}年${yun.getStartMonth()}月${yun.getStartDay()}天后起运`,
           daYun: daYunInfo
