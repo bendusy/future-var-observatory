@@ -20,7 +20,6 @@
     "remark-gfm": "^4.0.1",
     "remark-parse": "^11.0.0",
     "remark-stringify": "^11.0.0",
-    "sass": "^1.84.0",
     "unified": "^11.0.5",
     "uuid": "^9.0.0"
   },
@@ -31,6 +30,7 @@
     "@types/react-dom": "18.0.11",
     "autoprefixer": "^10.4.14",
     "postcss": "^8.4.21",
+    "sass": "^1.84.0",
     "tailwindcss": "^3.2.7",
     "typescript": "4.9.5"
   }
