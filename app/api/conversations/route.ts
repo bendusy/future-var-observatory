@@ -1,19 +1,34 @@
 import { type NextRequest } from 'next/server'
-import { NextResponse } from 'next/server'
-import { client, getInfo, setSession } from '@/app/api/utils/common'
+import { getInfo, setSession } from '../utils/common'
 
-export async function GET(request: NextRequest) {
-  const { sessionId, user } = getInfo(request)
+export async function POST(request: NextRequest) {
   try {
-    const { data }: any = await client.getConversations(user)
-    return NextResponse.json(data, {
-      headers: setSession(sessionId),
-    })
-  }
-  catch (error: any) {
-    return NextResponse.json({
-      data: [],
-      error: error.message,
-    })
+    const { sessionId } = getInfo(request)
+    
+    return new Response(
+      JSON.stringify({ 
+        success: true,
+        data: { 
+          conversation_id: sessionId 
+        }
+      }),
+      {
+        headers: {
+          ...setSession(sessionId),
+          'Content-Type': 'application/json'
+        }
+      }
+    )
+  } catch (error) {
+    return new Response(
+      JSON.stringify({ 
+        success: false, 
+        message: 'Failed to create conversation' 
+      }),
+      { 
+        status: 500,
+        headers: { 'Content-Type': 'application/json' }
+      }
+    )
   }
 }
