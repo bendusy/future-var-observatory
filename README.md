@@ -84,11 +84,104 @@ docker build . -t <DOCKER_HUB_REPO>/webapp-conversation:latest
 docker run -p 3000:3000 <DOCKER_HUB_REPO>/webapp-conversation:latest
 ```
 
-### 5. Vercel 部署
+### 5. Cloudflare 部署
 
-> ⚠️ 使用 [Vercel Hobby](https://vercel.com/pricing) 版本时,由于其限制,消息可能会被截断。
+#### 方案一：Cloudflare Pages
 
-推荐使用 [Vercel 平台](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) 进行部署。
+> ⚠️ 注意: Pages 有以下限制:
+>
+> - 构建输出限制为 25MB
+> - 单个函数最大执行时间为 30s
+> - 免费版本每月有 500 次构建限制
+
+1. 构建配置
+
+```bash
+# 构建命令 - 添加输出压缩
+npm run build && npm run compress
+
+# 构建输出目录
+.next
+
+# 环境变量配置
+NODE_VERSION=18
+```
+
+2. 优化构建大小:
+
+```json
+// next.config.js
+module.exports = {
+  output: 'standalone',
+  compress: true,
+  webpack: (config) => {
+    config.optimization.minimize = true;
+    return config;
+  }
+}
+```
+
+#### 方案二：Cloudflare Workers（推荐）
+
+> 💡 Workers 相比 Pages 有更好的资源限制:
+>
+> - 单个 Worker 代码大小限制为 1MB
+> - 但可以使用 Worker Sites 存储静态资源，最大支持 25GB
+> - 免费版每天有 100,000 请求限制
+> - 单次请求超时时间为 30ms（付费版可达 30s）
+
+1. 安装并配置 Wrangler:
+
+```bash
+npm install -g wrangler
+wrangler login
+```
+
+2. 创建 `wrangler.toml`:
+
+```toml
+name = "ai-chat-app"
+main = "workers-site/index.js"
+compatibility_date = "2023-01-01"
+
+[site]
+bucket = ".next/static"
+entry-point = "workers-site"
+
+[build]
+command = "npm run build"
+watch_dir = "src"
+
+# KV 命名空间配置（可选，用于缓存）
+kv_namespaces = [
+  { binding = "ASSETS", id = "xxx", preview_id = "xxx" }
+]
+
+# 自定义域名配置（可选）
+[env.production]
+routes = [
+  { pattern = "example.com/*", zone_id = "xxx" }
+]
+```
+
+3. 优化部署策略:
+
+```bash
+# 分离静态资源和 Worker 代码
+npm run build
+npm run split-chunks
+
+# 部署到 Workers
+wrangler publish
+```
+
+部署建议:
+
+- 优先选择 Workers 方案，资源限制更宽松
+- 使用 KV 存储来缓存静态资源
+- 考虑使用 R2 存储大型静态资源
+- 合理规划路由和缓存策略
+- 监控资源使用情况，避免超出限制
 
 ## 开发资源
 

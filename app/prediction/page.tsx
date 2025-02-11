@@ -1,23 +1,22 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Form, Radio, Select, Button, Card, message, Descriptions, Input, DatePicker, Checkbox } from 'antd'
-import type { PredictionForm, PredictionResult, PredictionDirection } from '@/types/prediction'
+import { Form, Radio, Select, Button, Card, message, Descriptions, Input, Checkbox, Modal } from 'antd'
+import type { PredictionForm, PredictionResult } from '@/types/prediction'
 import { fetchPredict } from '@/service/predict'
 import ReactMarkdown from 'react-markdown'
-import locale from 'antd/locale/zh_CN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
-import { Solar } from 'lunar-javascript'
 import { formatPredictionToMarkdown } from '@/utils/formatPrediction'
 import remarkGfm from 'remark-gfm'
+import { useRouter } from 'next/navigation'
 
 dayjs.locale('zh-cn')
 
 const { TextArea } = Input
-const { RangePicker } = DatePicker
 const { Option } = Select
 
+// 预测方向配置
 const directions = [
   { label: '事业发展', value: 'career', icon: '💼' },
   { label: '感情状况', value: 'relationship', icon: '❤️' },
@@ -25,7 +24,7 @@ const directions = [
   { label: '健康状况', value: 'health', icon: '🏥' }
 ]
 
-// 定义时辰
+// 时辰配置
 const timeSlots = [
   { start: 23, end: 1, name: '子时' },
   { start: 1, end: 3, name: '丑时' },
@@ -39,9 +38,13 @@ const timeSlots = [
   { start: 17, end: 19, name: '酉时' },
   { start: 19, end: 21, name: '戌时' },
   { start: 21, end: 23, name: '亥时' }
-]
+].map(slot => ({
+  ...slot,
+  label: `${slot.name} (${String(slot.start).padStart(2, '0')}:00-${String(slot.end).padStart(2, '0')}:00)`
+}))
 
 export default function PredictionPage() {
+  // 基础状态管理
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<PredictionResult | null>(null)
@@ -60,27 +63,13 @@ export default function PredictionPage() {
       daYun: string[]
     }
   } | null>(null)
+  const router = useRouter()
 
-  // 生成年份选项：1900年至今年，倒序排列
+  // 日期选项生成
   const currentYear = new Date().getFullYear()
-  const yearOptions = Array.from(
-    { length: currentYear - 1900 + 1 },
-    (_, i) => currentYear - i
-  )
-
-  // 生成月份选项：1-12月
+  const yearOptions = Array.from({ length: currentYear - 1900 + 1 }, (_, i) => currentYear - i)
   const monthOptions = Array.from({ length: 12 }, (_, i) => i + 1)
-
-  // 生成日期选项：1-31日
-  const dayOptions = Array.from({ length: 31 }, (_, i) => i + 1)
-
-  // 生成小时选项：0-23时
-  const hourOptions = Array.from({ length: 24 }, (_, i) => i)
-
-  // 根据年月计算当月天数
-  const getDaysInMonth = (year: number, month: number) => {
-    return new Date(year, month, 0).getDate()
-  }
+  const getDaysInMonth = (year: number, month: number) => new Date(year, month, 0).getDate()
 
   // 当年份或月份改变时，更新日期选项
   const currentDayOptions = Array.from(
@@ -88,51 +77,48 @@ export default function PredictionPage() {
     (_, i) => i + 1
   )
 
-  // 获取时辰名称
-  const getTimeSlotName = (hour: number) => {
-    const slot = timeSlots.find(slot => {
-      if (slot.start > slot.end) { // 跨夜的子时
-        return hour >= slot.start || hour < slot.end
-      }
-      return hour >= slot.start && hour < slot.end
-    })
-    return slot?.name || '子时'
-  }
-
   // 实时计算农历和八字
   const calculateLunarInfo = (year?: number, month?: number, day?: number, hour?: number) => {
-    if (!year || !month || !day) return null
+    if (!year || !month || !day) return null;
 
     try {
-      const solar = Solar.fromYmd(year, month, day)
-      const lunar = solar.getLunar()
-      const eightChar = lunar.getEightChar()
+      const solar = Solar.fromYmd(year, month, day);
+      const lunar = solar.getLunar();
+      const eightChar = lunar.getEightChar();
+
+      // 获取完整的八字信息
+      const baziInfo = {
+        year: eightChar.getYear(),
+        month: eightChar.getMonth(),
+        day: eightChar.getDay(),
+        time: hour !== undefined ? eightChar.getTime() : ''
+      };
 
       // 计算大运
-      const yun = eightChar.getYun(form.getFieldValue('gender') === 'male' ? 1 : 0)
-      const daYunArr = yun.getDaYun()
+      const yun = eightChar.getYun(form.getFieldValue('gender') === 'male' ? 1 : 0);
+      const daYunArr = yun.getDaYun();
 
       // 获取大运信息
       const daYunInfo = daYunArr.slice(0, 8).map((daYun, index) =>
         `${daYun.getStartYear()}年 ${daYun.getStartAge()}岁 ${daYun.getGanZhi()}`
-      )
+      );
 
       return {
         lunarDate: `${lunar.getYearInChinese()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`,
-        bazi: `${eightChar.getYear()} ${eightChar.getMonth()} ${eightChar.getDay()} ${hour ? eightChar.getTime() : ''}`,
-        wuxing: `${eightChar.getYearWuXing()},${eightChar.getMonthWuXing()},${eightChar.getDayWuXing()},${eightChar.getTimeWuXing()}`,
-        nayin: `${eightChar.getYearNaYin()},${eightChar.getMonthNaYin()},${eightChar.getDayNaYin()},${eightChar.getTimeNaYin()}`,
+        bazi: `${baziInfo.year} ${baziInfo.month} ${baziInfo.day} ${baziInfo.time}`.trim(),
+        wuxing: `${eightChar.getYearWuXing()} ${eightChar.getMonthWuXing()} ${eightChar.getDayWuXing()} ${eightChar.getTimeWuXing()}`.trim(),
+        nayin: `${eightChar.getYearNaYin()} ${eightChar.getMonthNaYin()} ${eightChar.getDayNaYin()} ${eightChar.getTimeNaYin()}`.trim(),
         shishen: `年干:${eightChar.getYearShiShenGan()} 月干:${eightChar.getMonthShiShenGan()} 日干:${eightChar.getDayShiShenGan()} 时干:${eightChar.getTimeShiShenGan()}`,
         yun: {
           startInfo: `出生${yun.getStartYear()}年${yun.getStartMonth()}月${yun.getStartDay()}天后起运`,
           daYun: daYunInfo
         }
-      }
+      };
     } catch (err) {
-      console.error('Calculate lunar info error:', err)
-      return null
+      console.error('Calculate lunar info error:', err);
+      return null;
     }
-  }
+  };
 
   // 监听日期变化
   useEffect(() => {
@@ -169,41 +155,69 @@ export default function PredictionPage() {
     }
   }
 
+  // 将 queryContent 提升为组件状态
+  const [queryContent, setQueryContent] = useState<any>(null);
+
+  // 更新隐私提示
+  useEffect(() => {
+    if (!localStorage.getItem('disclaimer_accepted')) {
+      Modal.confirm({
+        title: '免责声明',
+        content: (
+          <div className="space-y-4">
+            <p>在使用本服务前，请您知悉：</p>
+            <ol className="list-decimal pl-4 space-y-2">
+              <li>本服务仅供娱乐参考，不构成任何建议或决策依据</li>
+              <li>预测结果仅供参考，不对因使用本服务产生的任何后果负责</li>
+            </ol>
+          </div>
+        ),
+        okText: '同意并继续',
+        cancelText: '不同意',
+        onOk: () => localStorage.setItem('disclaimer_accepted', 'true'),
+        onCancel: () => {
+          message.info('您需要同意免责声明才能使用本服务')
+          router.push('/')
+        },
+        width: 600,
+      })
+    }
+  }, [router])
+
   const onFinish = async (values: any) => {
-    const formData: PredictionForm = {
-      ...values,
-      birthDate: `${values.birthYear}-${String(values.birthMonth).padStart(2, '0')}-${String(values.birthDay).padStart(2, '0')}`,
-      birthTime: `${String(values.birthHour).padStart(2, '0')}:00`,
-    }
-
-    // 构建查询内容
-    const queryContent = {
-      basic_info: {
-        gender: formData.gender === 'male' ? '男' : formData.gender === 'female' ? '女' : '其他',
-        birth_time: {
-          solar: `${formData.birthDate} ${formData.birthTime}`,
-          lunar: lunarInfo?.lunarDate || '',
-        }
-      },
-      destiny_info: {
-        bazi: lunarInfo?.bazi || '',
-        wuxing: lunarInfo?.wuxing || '',
-        nayin: lunarInfo?.nayin || '',
-        shishen: lunarInfo?.shishen || '',
-        yun: lunarInfo?.yun ? {
-          start: lunarInfo.yun.startInfo,
-          dayun: lunarInfo.yun.daYun
-        } : undefined
-      },
-      prediction: {
-        directions: formData.direction,
-        custom_directions: formData.customDirections || '',
-      }
-    }
-
     setError('')
     setLoading(true)
+
     try {
+      const formData = {
+        ...values,
+        birthDate: `${values.birthYear}-${String(values.birthMonth).padStart(2, '0')}-${String(values.birthDay).padStart(2, '0')}`,
+        birthTime: `${String(values.birthHour).padStart(2, '0')}:00`,
+      }
+
+      const queryContent = {
+        basic_info: {
+          gender: formData.gender === 'male' ? '男' : formData.gender === 'female' ? '女' : '其他',
+          birth_time: {
+            solar: `${formData.birthDate} ${formData.birthTime}`,
+            lunar: lunarInfo?.lunarDate || '',
+          }
+        },
+        destiny_info: {
+          bazi: lunarInfo?.bazi || '',
+          wuxing: lunarInfo?.wuxing || '',
+          nayin: lunarInfo?.nayin || '',
+          shishen: lunarInfo?.shishen || '',
+          yun: lunarInfo?.yun
+        },
+        prediction: {
+          directions: formData.direction,
+          custom_directions: formData.customDirections || '',
+        }
+      }
+
+      setQueryContent(queryContent)
+
       const response = await fetchPredict({
         ...formData,
         query: JSON.stringify(queryContent),
@@ -212,8 +226,7 @@ export default function PredictionPage() {
         conversation_id: formData.conversation_id
       })
 
-      // 构造符合 PredictionResult 类型的结果
-      const predictionResult: PredictionResult = {
+      setResult({
         id: response.id || crypto.randomUUID(),
         userId: formData.user || 'anonymous',
         timestamp: Date.now(),
@@ -223,12 +236,9 @@ export default function PredictionPage() {
           directions: formData.direction
         },
         result: response.content
-      }
-
-      setResult(predictionResult)
-      message.success('预测完成')
+      })
     } catch (err) {
-      console.error('Prediction Error:', err)
+      console.error('Prediction failed')
       setError(err instanceof Error ? err.message : '预测失败，请稍后重试')
       message.error('预测失败，请稍后重试')
     } finally {
@@ -292,14 +302,23 @@ export default function PredictionPage() {
     <div className="max-w-3xl mx-auto p-4">
       <h1 className="text-2xl font-bold text-center mb-8">未来变量观测</h1>
 
+      {/* 添加免责声明提示 */}
+      <div className="mb-6 p-4 bg-gray-50 rounded-lg text-sm text-gray-600">
+        <p className="font-medium mb-2">免责声明：</p>
+        <ul className="list-disc pl-4 space-y-1">
+          <li>本服务仅供娱乐参考</li>
+          <li>预测结果不构成任何建议或决策依据</li>
+          <li>使用本服务即表示您同意免责声明</li>
+        </ul>
+      </div>
+
       <Form
         form={form}
         layout="vertical"
         onFinish={onFinish}
         initialValues={{
           calendarType: 'solar',
-          birthDate: dayjs(),
-          birthHour: 12, // 默认午时
+          birthHour: 12,
         }}
       >
         <Form.Item
@@ -324,7 +343,7 @@ export default function PredictionPage() {
             className="w-full"
           >
             <Radio.Button value="solar" className="w-1/2 text-center">📅 公历</Radio.Button>
-            <Radio.Button value="lunar" className="w-1/2 text-center">🏮 农历</Radio.Button>
+            <Radio.Button value="lunar" className="w-1/2 text-center">农历</Radio.Button>
           </Radio.Group>
         </Form.Item>
 
@@ -392,7 +411,7 @@ export default function PredictionPage() {
                   key={index}
                   value={slot.start}
                 >
-                  {slot.name} ({String(slot.start).padStart(2, '0')}:00-{String(slot.end).padStart(2, '0')}:00)
+                  {slot.label}
                 </Option>
               ))}
             </Select>
