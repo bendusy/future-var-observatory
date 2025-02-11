@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { Form, Radio, Select, Button, Card, message, Descriptions, Input, DatePicker, Checkbox } from 'antd'
-import type { PredictionForm, PredictionResult } from '@/types/prediction'
+import type { PredictionForm, PredictionResult, PredictionDirection } from '@/types/prediction'
 import { fetchPredict } from '@/service/predict'
 import ReactMarkdown from 'react-markdown'
 import locale from 'antd/locale/zh_CN'
 import dayjs from 'dayjs'
 import 'dayjs/locale/zh-cn'
 import { Solar } from 'lunar-javascript'
+import { formatPredictionToMarkdown } from '@/utils/formatPrediction'
+import remarkGfm from 'remark-gfm'
 
 dayjs.locale('zh-cn')
 
@@ -174,11 +176,56 @@ export default function PredictionPage() {
       birthTime: `${String(values.birthHour).padStart(2, '0')}:00`,
     }
 
+    // 构建查询内容
+    const queryContent = {
+      basic_info: {
+        gender: formData.gender === 'male' ? '男' : formData.gender === 'female' ? '女' : '其他',
+        birth_time: {
+          solar: `${formData.birthDate} ${formData.birthTime}`,
+          lunar: lunarInfo?.lunarDate || '',
+        }
+      },
+      destiny_info: {
+        bazi: lunarInfo?.bazi || '',
+        wuxing: lunarInfo?.wuxing || '',
+        nayin: lunarInfo?.nayin || '',
+        shishen: lunarInfo?.shishen || '',
+        yun: lunarInfo?.yun ? {
+          start: lunarInfo.yun.startInfo,
+          dayun: lunarInfo.yun.daYun
+        } : undefined
+      },
+      prediction: {
+        directions: formData.direction,
+        custom_directions: formData.customDirections || '',
+      }
+    }
+
     setError('')
     setLoading(true)
     try {
-      const response = await fetchPredict(formData)
-      setResult(response)
+      const response = await fetchPredict({
+        ...formData,
+        query: JSON.stringify(queryContent),
+        response_mode: "streaming",
+        user: formData.user || 'anonymous',
+        conversation_id: formData.conversation_id
+      })
+
+      // 构造符合 PredictionResult 类型的结果
+      const predictionResult: PredictionResult = {
+        id: response.id || crypto.randomUUID(),
+        userId: formData.user || 'anonymous',
+        timestamp: Date.now(),
+        inputs: {
+          gender: formData.gender,
+          birthDateTime: `${formData.birthDate} ${formData.birthTime}`,
+          directions: formData.direction
+        },
+        result: response.content
+      }
+
+      setResult(predictionResult)
       message.success('预测完成')
     } catch (err) {
       console.error('Prediction Error:', err)
@@ -188,6 +235,58 @@ export default function PredictionPage() {
       setLoading(false)
     }
   }
+
+  // 修改格式化函数
+  const formatPredictionContent = (content: string) => {
+    try {
+      // 尝试解析 JSON 字符串
+      let parsedContent = content
+      if (typeof content === 'string' && content.startsWith('{')) {
+        const jsonContent = JSON.parse(content)
+        // 获取 answer 字段中的内容
+        parsedContent = jsonContent.answer || jsonContent.content || jsonContent.text || content
+      }
+
+      // 移除 Thinking... 部分
+      parsedContent = parsedContent.replace(/<details.*?<\/details>/s, '').trim()
+
+      // 处理表格部分
+      const formatTables = (text: string) => {
+        // 查找表格部分（包括表格标记符和表头）
+        const tableRegex = /(\|[^\n]*\|\n*)+/g
+        return text.replace(tableRegex, (match) => {
+          // 只移除表格中的 emoji，保留其他部分的 emoji
+          const cleanedTable = match.replace(/\|([^|]*[\u{1F300}-\u{1F6FF}\u{1F900}-\u{1F9FF}]|[🌐📊][^|]*)\|/gu, '|$1|')
+          // 确保表格格式正确
+          return cleanedTable
+            .split('\n')
+            .map(line => line.trim())
+            .filter(line => line.length > 0)
+            .join('\n')
+        })
+      }
+
+      // 清理表格格式
+      const cleanupTables = (text: string) => {
+        return text
+          .replace(/\|\s*\|/g, '|')      // 移除空列
+          .replace(/\|\s+/g, '| ')       // 规范化左侧空格
+          .replace(/\s+\|/g, ' |')       // 规范化右侧空格
+          .replace(/^\s*\|/, '|')        // 确保行首的竖线
+          .replace(/\|\s*$/, '|')        // 确保行尾的竖线
+          .replace(/\n{3,}/g, '\n\n')    // 移除多余的空行
+      }
+
+      // 处理内容
+      const formattedContent = formatTables(parsedContent)
+      return cleanupTables(formattedContent)
+    } catch (err) {
+      console.error('Format prediction content error:', err)
+      return content // 如果处理失败，返回原始内容
+    }
+  }
+
+  const formattedResult = formatPredictionToMarkdown(result)
 
   return (
     <div className="max-w-3xl mx-auto p-4">
@@ -402,8 +501,107 @@ export default function PredictionPage() {
           <div className="text-sm text-gray-500 mb-2">
             预测时间: {new Date(result.timestamp).toLocaleString()}
           </div>
-          <article className="prose prose-sm max-w-none dark:prose-invert prose-headings:my-4 prose-p:my-2">
-            <ReactMarkdown>{result.content}</ReactMarkdown>
+          <article className="prose prose-sm max-w-none dark:prose-invert whitespace-pre-wrap break-words">
+            <ReactMarkdown
+              components={{
+                // 自定义表格容器样式
+                table: ({ node, ...props }) => (
+                  <div className="overflow-x-auto my-6">
+                    <table className="min-w-full divide-y divide-gray-200 bg-white rounded-lg shadow-sm border border-gray-200" {...props} />
+                  </div>
+                ),
+
+                // 自定义表格头部样式
+                th: ({ node, ...props }) => (
+                  <th
+                    className="px-6 py-4 bg-gray-50 text-left text-sm font-semibold text-gray-600 border-b border-gray-200 first:rounded-tl-lg last:rounded-tr-lg"
+                    {...props}
+                  />
+                ),
+
+                // 自定义表格单元格样式
+                td: ({ node, ...props }) => (
+                  <td
+                    className="px-6 py-4 text-sm text-gray-800 border-b border-gray-100 align-top whitespace-pre-wrap break-words"
+                    {...props}
+                  />
+                ),
+
+                // 自定义表格行样式
+                tr: ({ node, ...props }) => (
+                  <tr
+                    className="hover:bg-gray-50 transition-colors even:bg-gray-50/20"
+                    {...props}
+                  />
+                ),
+
+                // 自定义段落样式，保留原始格式
+                p: ({ node, children, ...props }) => (
+                  <p className="my-4 text-base leading-relaxed whitespace-pre-wrap" {...props}>
+                    {children}
+                  </p>
+                ),
+
+                // 自定义标题样式
+                h1: ({ node, children, ...props }) => (
+                  <h1 className="text-2xl font-bold my-4 whitespace-pre-wrap" {...props}>
+                    {children}
+                  </h1>
+                ),
+                h2: ({ node, children, ...props }) => (
+                  <h2 className="text-xl font-semibold my-3 whitespace-pre-wrap" {...props}>
+                    {children}
+                  </h2>
+                ),
+                h3: ({ node, children, ...props }) => (
+                  <h3 className="text-lg font-medium my-2 whitespace-pre-wrap" {...props}>
+                    {children}
+                  </h3>
+                ),
+
+                // 自定义列表样式
+                ul: ({ node, ...props }) => (
+                  <ul className="list-disc pl-6 space-y-2 my-4 whitespace-pre-wrap" {...props} />
+                ),
+                ol: ({ node, ...props }) => (
+                  <ol className="list-decimal pl-6 space-y-2 my-4 whitespace-pre-wrap" {...props} />
+                ),
+                li: ({ node, children, ...props }) => (
+                  <li className="text-base leading-relaxed whitespace-pre-wrap" {...props}>
+                    {children}
+                  </li>
+                ),
+
+                // 添加分隔线样式
+                hr: ({ node, ...props }) => (
+                  <hr className="my-8 border-t-2 border-gray-200" {...props} />
+                ),
+
+                // 添加引用样式
+                blockquote: ({ node, children, ...props }) => (
+                  <blockquote
+                    className="pl-4 border-l-4 border-gray-200 italic my-4 text-gray-600 whitespace-pre-wrap"
+                    {...props}
+                  >
+                    {children}
+                  </blockquote>
+                ),
+
+                // 添加代码块样式
+                code: ({ node, inline, children, ...props }) => {
+                  if (inline) {
+                    return <code className="px-1 py-0.5 bg-gray-100 rounded" {...props}>{children}</code>
+                  }
+                  return (
+                    <pre className="p-4 bg-gray-50 rounded-lg overflow-x-auto whitespace-pre-wrap">
+                      <code {...props}>{children}</code>
+                    </pre>
+                  )
+                }
+              }}
+            >
+              {formattedResult}
+            </ReactMarkdown>
           </article>
         </Card>
       )}

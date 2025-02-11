@@ -10,7 +10,7 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     // 优化构建大小
     config.optimization = {
       ...config.optimization,
@@ -30,8 +30,23 @@ const nextConfig = {
         },
       },
     }
+
+    // Windows 特定配置
+    if (process.platform === 'win32') {
+      config.watchOptions = {
+        poll: false,
+        aggregateTimeout: 300,
+        ignored: ['**/.git/**', '**/node_modules/**', '**/.next/**']
+      }
+    }
+
     return config
-  }
+  },
+  // 禁用快速刷新（热更新）
+  devIndicators: {
+    buildActivity: false
+  },
+  reactStrictMode: false
 }
 
 module.exports = nextConfig

@@ -1,80 +1,111 @@
-# Conversation Web App Template
-This is a [Next.js](https://nextjs.org/) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+# AI 对话应用模板
 
-## Config App
-Create a file named `.env.local` in the current directory and copy the contents from `.env.example`. Setting the following content:
-```
-# APP ID: This is the unique identifier for your app. You can find it in the app's detail page URL. 
-# For example, in the URL `https://cloud.dify.ai/app/xxx/workflow`, the value `xxx` is your APP ID.
+这是一个基于 [Next.js](https://nextjs.org/) 开发的 AI 对话应用模板,可以快速搭建类似 ChatGPT 的对话应用。
+
+## 功能特点
+
+- 💬 支持多轮对话
+- 🔄 实时流式响应
+- 📝 对话历史保存
+- 🎨 可自定义提示词
+- 🌍 多语言支持
+- 🎯 支持 Markdown 渲染
+
+## 快速开始
+
+### 1. 环境配置
+
+创建 `.env.local` 文件并配置以下环境变量:
+
+```bash
+# APP ID - 应用唯一标识
+# 可在 Dify 控制台应用详情页 URL 中获取,如 https://cloud.dify.ai/app/xxx/workflow 中的 xxx
 NEXT_PUBLIC_APP_ID=
 
-# APP API Key: This is the key used to authenticate your app's API requests. 
-# You can generate it on the app's "API Access" page by clicking the "API Key" button in the top-right corner.
+# API Key - API 访问密钥
+# 在应用的 "API 访问" 页面右上角点击 "API Key" 按钮生成
 NEXT_PUBLIC_APP_KEY=
 
-# APP URL: This is the API's base URL. If you're using the Dify cloud service, set it to: https://api.dify.ai/v1.
+# API URL - API 基础地址
+# 使用 Dify 云服务时设置为: https://api.dify.ai/v1
 NEXT_PUBLIC_API_URL=
 ```
 
-Config more in `config/index.ts` file:   
-```js
-export const APP_INFO: AppInfo = {
-  title: 'Chat APP',
-  description: '',
-  copyright: '',
-  privacy_policy: '',
-  default_language: 'zh-Hans'
+### 2. 应用配置
+
+在 `config/index.ts` 文件中配置应用信息:
+
+```typescript
+export const APP_INFO = {
+  title: '对话应用',          // 应用标题
+  description: '',           // 应用描述
+  copyright: '',            // 版权信息
+  privacy_policy: '',       // 隐私政策
+  default_language: 'zh-Hans' // 默认语言
 }
 
+// 是否显示提示词
 export const isShowPrompt = true
+// 提示词模板
 export const promptTemplate = ''
 ```
 
-## Getting Started
-First, install dependencies:
+### 3. 本地开发
+
+安装依赖:
+
 ```bash
 npm install
-# or
+# 或
 yarn
-# or
+# 或
 pnpm install
 ```
 
-Then, run the development server:
+启动开发服务器:
 
 ```bash
 npm run dev
-# or
+# 或
 yarn dev
-# or
+# 或
 pnpm dev
 ```
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Using Docker
+访问 [http://localhost:3000](http://localhost:3000) 查看应用。
 
-```
+### 4. Docker 部署
+
+```bash
+# 构建镜像
 docker build . -t <DOCKER_HUB_REPO>/webapp-conversation:latest
-# now you can access it in port 3000
+
+# 运行容器
 docker run -p 3000:3000 <DOCKER_HUB_REPO>/webapp-conversation:latest
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 5. Vercel 部署
 
-## Learn More
+> ⚠️ 使用 [Vercel Hobby](https://vercel.com/pricing) 版本时,由于其限制,消息可能会被截断。
 
-To learn more about Next.js, take a look at the following resources:
+推荐使用 [Vercel 平台](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) 进行部署。
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 开发资源
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js/) - your feedback and contributions are welcome!
+- [Next.js 文档](https://nextjs.org/docs) - 了解 Next.js 特性和 API
+- [Next.js 教程](https://nextjs.org/learn) - 交互式 Next.js 教程
 
-## Deploy on Vercel
+## 注意事项
 
-> ⚠️ If you are using [Vercel Hobby](https://vercel.com/pricing), your message will be truncated due to the limitation of vercel.
+1. 确保 API Key 安全,不要提交到代码仓库
+2. 开发时注意环境变量的正确配置
+3. 部署前进行充分的功能测试
+4. 注意处理大规模并发访问的性能优化
 
+## 贡献指南
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+欢迎提交 Issue 和 Pull Request 来帮助改进这个项目。
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/deployment) for more details.
+## 许可证
+
+本项目采用 MIT 许可证。
