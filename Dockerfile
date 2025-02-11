@@ -6,8 +6,8 @@ WORKDIR /app
 # 只复制 package 文件
 COPY package*.json ./
 
-# 安装依赖，并清理缓存
-RUN npm ci --only=production --no-audit && \
+# 安装所有依赖，包括开发依赖
+RUN npm install --no-audit && \
     npm cache clean --force
 
 # Builder stage
@@ -36,9 +36,11 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# 复制启动脚本
-COPY docker-entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+# 复制并设置启动脚本
+COPY docker-entrypoint.sh ./
+RUN chmod +x ./docker-entrypoint.sh && \
+    mv ./docker-entrypoint.sh /usr/local/bin/ && \
+    chown nextjs:nodejs /usr/local/bin/docker-entrypoint.sh
 
 # 清理和优化
 RUN rm -rf /app/.next/cache && \
