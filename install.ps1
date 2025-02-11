@@ -64,9 +64,90 @@ catch {
     exit 1
 }
 
+# 检查并安装 pm2
+function Install-PM2 {
+    try {
+        $pm2Version = (pm2 -v) 2>$null
+        Write-Host "检测到 pm2 已安装" -ForegroundColor Green
+    }
+    catch {
+        Write-Host "正在安装 pm2..." -ForegroundColor Yellow
+        npm install -g pm2
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "pm2 安装失败" -ForegroundColor Red
+            exit 1
+        }
+    }
+}
+
 # 安装依赖
 Write-Host "正在安装依赖..."
 npm install
+
+# 安装 node-windows
+Write-Host "正在安装 node-windows..." -ForegroundColor Yellow
+npm install -g node-windows
+npm link node-windows
+
+# 创建 Windows 服务安装脚本
+$serviceScript = @"
+const Service = require('node-windows').Service;
+const path = require('path');
+
+const svc = new Service({
+    name: 'WebApp8Zi',
+    description: '未来变量观测局 Web 服务',
+    script: path.join(process.cwd(), 'node_modules', 'next', 'dist', 'bin', 'next'),
+    scriptOptions: 'start -p 33896',
+    nodeOptions: '--harmony',
+    workingDirectory: process.cwd(),
+    allowServiceLogon: true
+});
+
+svc.on('install', () => {
+    console.log('服务安装成功');
+    svc.start();
+});
+
+svc.on('uninstall', () => {
+    console.log('服务卸载成功');
+});
+
+svc.on('start', () => {
+    console.log('服务启动成功');
+});
+
+svc.on('stop', () => {
+    console.log('服务已停止');
+});
+
+svc.on('error', (err) => {
+    console.error('服务错误:', err);
+});
+
+if (process.argv[2] === 'uninstall') {
+    svc.uninstall();
+} else {
+    svc.install();
+}
+"@ 
+
+# 创建服务管理脚本
+$serviceScriptPath = "install-service.js"
+$serviceScript | Out-File -FilePath $serviceScriptPath -Encoding UTF8
+
+# 创建卸载脚本
+$uninstallScript = @"
+# 卸载 Windows 服务
+Write-Host "正在卸载服务..." -ForegroundColor Yellow
+node install-service.js uninstall
+"@
+
+$uninstallScriptPath = "uninstall.ps1"
+$uninstallScript | Out-File -FilePath $uninstallScriptPath -Encoding UTF8
+
+# 安装 pm2
+Install-PM2
 
 # 处理环境变量
 function Setup-Env {
@@ -119,9 +200,24 @@ NEXT_PUBLIC_API_URL=$apiUrl
 Setup-Env $args[0] $args[1] $args[2]
 
 # 构建项目
-Write-Host "正在构建项目..."
+Write-Host "正在构建项目..." -ForegroundColor Yellow
 npm run build
 
-# 启动服务
-Write-Host "正在启动服务..."
-npm start 
+# 安装并启动 Windows 服务
+Write-Host "正在安装并启动 Windows 服务..." -ForegroundColor Yellow
+node install-service.js
+
+Write-Host "=============================="
+Write-Host "部署完成！" -ForegroundColor Green
+Write-Host "服务已作为 Windows 服务安装并启动"
+Write-Host "访问 http://localhost:33896"
+Write-Host ""
+Write-Host "服务管理：" -ForegroundColor Yellow
+Write-Host "- 启动服务：net start WebApp8Zi"
+Write-Host "- 停止服务：net stop WebApp8Zi"
+Write-Host "- 卸载服务：./uninstall.ps1"
+Write-Host "- 查看服务：services.msc (在系统服务中查找 'WebApp8Zi')"
+Write-Host ""
+Write-Host "日志查看：" -ForegroundColor Yellow
+Write-Host "- 事件查看器(eventvwr.msc) -> Windows 日志 -> 应用程序"
+Write-Host "- 在事件查看器中搜索来源为 'WebApp8Zi' 的日志" 

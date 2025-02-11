@@ -55,9 +55,22 @@ if [ "$(echo $NPM_VERSION | cut -d'.' -f1)" -lt 10 ]; then
     npm install -g npm@latest
 fi
 
+# 检查并安装 pm2
+install_pm2() {
+    if ! command -v pm2 >/dev/null 2>&1; then
+        echo "正在安装 pm2..."
+        npm install -g pm2
+    else
+        echo "检测到 pm2 已安装"
+    fi
+}
+
 # 安装依赖
 echo "正在安装依赖..."
 npm install
+
+# 安装 pm2
+install_pm2
 
 # 处理环境变量
 function setup_env() {
@@ -105,6 +118,33 @@ setup_env "$1" "$2" "$3"
 echo "正在构建项目..."
 npm run build
 
-# 启动服务
+# 使用 pm2 启动服务
 echo "正在启动服务..."
-npm start 
+# 停止已存在的实例
+pm2 stop webapp-8zi 2>/dev/null || true
+pm2 delete webapp-8zi 2>/dev/null || true
+
+# 启动新实例
+pm2 start npm --name "webapp-8zi" -- start
+
+# 保存 pm2 配置
+pm2 save
+
+# 设置开机自启
+echo "是否设置开机自启？[y/N]"
+read -r autostart_choice
+if [[ $autostart_choice =~ ^[Yy]$ ]]; then
+    pm2 startup
+    echo "已设置开机自启"
+fi
+
+echo "=============================="
+echo "部署完成！"
+echo "服务已在后台启动，访问 http://localhost:33896"
+echo ""
+echo "常用命令："
+echo "- 查看运行状态：pm2 status"
+echo "- 查看应用日志：pm2 logs webapp-8zi"
+echo "- 重启应用：pm2 restart webapp-8zi"
+echo "- 停止应用：pm2 stop webapp-8zi"
+echo "- 删除应用：pm2 delete webapp-8zi" 
