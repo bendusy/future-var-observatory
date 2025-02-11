@@ -71,40 +71,48 @@ npm install
 # 处理环境变量
 function Setup-Env {
     param (
-        $AppId,
-        $AppKey,
-        $ApiUrl
+        [string]$AppId,
+        [string]$AppKey,
+        [string]$ApiUrl
     )
     
     $envFile = ".env.local"
     
+    # 如果环境变量文件已存在,直接返回
+    if (Test-Path $envFile) {
+        Write-Host "检测到 $envFile 文件已存在,跳过配置..." -ForegroundColor Green
+        return
+    }
+    
     # 如果命令行参数存在，使用命令行参数
     if ($AppId -and $AppKey -and $ApiUrl) {
-        Write-Host "使用命令行参数配置环境变量..."
-        Set-Content $envFile "NEXT_PUBLIC_APP_ID=$AppId"
-        Add-Content $envFile "NEXT_PUBLIC_APP_KEY=$AppKey"
-        Add-Content $envFile "NEXT_PUBLIC_API_URL=$ApiUrl"
+        Write-Host "使用命令行参数配置环境变量..." -ForegroundColor Green
+        @"
+NEXT_PUBLIC_APP_ID=$AppId
+NEXT_PUBLIC_APP_KEY=$AppKey
+NEXT_PUBLIC_API_URL=$ApiUrl
+"@ | Out-File -FilePath $envFile -Encoding UTF8
         return
     }
     
     # 如果环境变量文件不存在，创建并提示输入
-    if (-not (Test-Path $envFile)) {
-        Write-Host "未检测到环境变量配置，请输入以下信息："
-        
-        $appId = Read-Host "请输入 Dify 应用 ID (NEXT_PUBLIC_APP_ID)"
-        $appKey = Read-Host "请输入 Dify API 密钥 (NEXT_PUBLIC_APP_KEY)"
-        $apiUrl = Read-Host "请输入 Dify API 地址 [默认: https://api.dify.ai/v1]"
-        
-        if (-not $apiUrl) {
-            $apiUrl = "https://api.dify.ai/v1"
-        }
-        
-        Set-Content $envFile "NEXT_PUBLIC_APP_ID=$appId"
-        Add-Content $envFile "NEXT_PUBLIC_APP_KEY=$appKey"
-        Add-Content $envFile "NEXT_PUBLIC_API_URL=$apiUrl"
-        
-        Write-Host "环境变量已保存到 $envFile"
+    Write-Host "未检测到环境变量配置，请输入以下信息：" -ForegroundColor Yellow
+    
+    $appId = Read-Host "请输入 Dify 应用 ID (NEXT_PUBLIC_APP_ID)"
+    $appKey = Read-Host "请输入 Dify API 密钥 (NEXT_PUBLIC_APP_KEY)"
+    $apiUrl = Read-Host "请输入 Dify API 地址 [默认: https://api.dify.ai/v1]"
+    
+    if (-not $apiUrl) {
+        $apiUrl = "https://api.dify.ai/v1"
     }
+    
+    @"
+NEXT_PUBLIC_APP_ID=$appId
+NEXT_PUBLIC_APP_KEY=$appKey
+NEXT_PUBLIC_API_URL=$apiUrl
+"@ | Out-File -FilePath $envFile -Encoding UTF8
+    
+    Write-Host "环境变量已保存到 $envFile" -ForegroundColor Green
 }
 
 # 设置环境变量

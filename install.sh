@@ -60,38 +60,42 @@ echo "正在安装依赖..."
 npm install
 
 # 处理环境变量
-setup_env() {
+function setup_env() {
     local env_file=".env.local"
+    
+    # 如果环境变量文件已存在,直接返回
+    if [ -f $env_file ]; then
+        echo "检测到 $env_file 文件已存在,跳过配置..."
+        return 0
+    fi
     
     # 如果命令行参数存在，使用命令行参数
     if [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -z "$3" ]; then
         echo "使用命令行参数配置环境变量..."
         echo "NEXT_PUBLIC_APP_ID=$1" > $env_file
-        echo "NEXT_PUBLIC_APP_KEY=$2" > $env_file
+        echo "NEXT_PUBLIC_APP_KEY=$2" >> $env_file
         echo "NEXT_PUBLIC_API_URL=$3" >> $env_file
         return 0
     fi
     
     # 如果环境变量文件不存在，创建并提示输入
-    if [ ! -f $env_file ]; then
-        echo "未检测到环境变量配置，请输入以下信息："
-        
-        echo -n "请输入 Dify 应用 ID (NEXT_PUBLIC_APP_ID): "
-        read -r app_id
-        
-        echo -n "请输入 Dify API 密钥 (NEXT_PUBLIC_APP_KEY): "
-        read -r app_key
-        
-        echo -n "请输入 Dify API 地址 [默认: https://api.dify.ai/v1]: "
-        read -r api_url
-        api_url=${api_url:-https://api.dify.ai/v1}
-        
-        echo "NEXT_PUBLIC_APP_ID=$app_id" > $env_file
-        echo "NEXT_PUBLIC_APP_KEY=$app_key" >> $env_file
-        echo "NEXT_PUBLIC_API_URL=$api_url" >> $env_file
-        
-        echo "环境变量已保存到 $env_file"
-    fi
+    echo "未检测到环境变量配置，请输入以下信息："
+    
+    echo -n "请输入 Dify 应用 ID (NEXT_PUBLIC_APP_ID): "
+    read -r app_id
+    
+    echo -n "请输入 Dify API 密钥 (NEXT_PUBLIC_APP_KEY): "
+    read -r app_key
+    
+    echo -n "请输入 Dify API 地址 [默认: https://api.dify.ai/v1]: "
+    read -r api_url
+    api_url=${api_url:-https://api.dify.ai/v1}
+    
+    echo "NEXT_PUBLIC_APP_ID=$app_id" > $env_file
+    echo "NEXT_PUBLIC_APP_KEY=$app_key" >> $env_file
+    echo "NEXT_PUBLIC_API_URL=$api_url" >> $env_file
+    
+    echo "环境变量已保存到 $env_file"
 }
 
 # 设置环境变量
