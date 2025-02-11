@@ -39,8 +39,7 @@ COPY --from=builder /app/.next/static ./.next/static
 # 复制并设置启动脚本
 COPY docker-entrypoint.sh ./
 RUN chmod +x ./docker-entrypoint.sh && \
-    mv ./docker-entrypoint.sh /usr/local/bin/ && \
-    chown nextjs:nodejs /usr/local/bin/docker-entrypoint.sh
+    chown nextjs:nodejs ./docker-entrypoint.sh
 
 # 清理和优化
 RUN rm -rf /app/.next/cache && \
@@ -56,5 +55,5 @@ ENV NODE_ENV=production \
     PORT=33896 \
     HOSTNAME="0.0.0.0"
 
-ENTRYPOINT ["docker-entrypoint.sh"]
+ENTRYPOINT ["./docker-entrypoint.sh"]
 CMD ["node", "server.js"]

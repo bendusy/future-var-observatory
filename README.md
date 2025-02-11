@@ -26,11 +26,54 @@
 
 ## 安装部署
 
+### 方法一：一键部署（推荐）
+
+#### Linux/MacOS 用户
+
+```bash
+# 1. 克隆项目
+git clone https://github.com/bendusy/webapp-8zi.git
+cd webapp-8zi
+
+# 2. 运行安装脚本
+chmod +x install.sh
+./install.sh
+```
+
+#### Windows 用户
+
+```powershell
+# 1. 克隆项目
+git clone https://github.com/bendusy/webapp-8zi.git
+cd webapp-8zi
+
+# 2. 运行安装脚本
+.\install.ps1
+```
+
+> 注意：
+>
+> 1. 首次运行时，脚本会在项目根目录自动创建 `.env.local` 文件
+> 2. 使用记事本或任何文本编辑器打开项目根目录下的 `.env.local` 文件
+> 3. 填入以下配置信息：
+>
+>    ```
+>    NEXT_PUBLIC_APP_ID=your_app_id    # 替换为你的 Dify 应用 ID
+>    NEXT_PUBLIC_APP_KEY=your_api_key  # 替换为你的 Dify API 密钥
+>    NEXT_PUBLIC_API_URL=https://api.dify.ai/v1
+>    ```
+>
+> 4. 保存 `.env.local` 文件
+> 5. 再次运行安装脚本即可启动服务
+> 6. 启动成功后，打开浏览器访问：<http://localhost:33896>
+
+### 方法二：手动安装
+
 1. 克隆项目
 
 ```bash
-git clone https://github.com/yourusername/future-var-observatory.git
-cd future-var-observatory
+git clone https://github.com/bendusy/webapp-8zi.git
+cd webapp-8zi
 ```
 
 2. 安装依赖
@@ -40,20 +83,21 @@ npm install
 ```
 
 3. 配置环境变量
+   - 复制项目根目录下的 `.env.example` 文件并重命名为 `.env.local`
+   - 使用记事本或任何文本编辑器打开 `.env.local`
+   - 填入以下配置信息：
 
-```bash
-cp .env.example .env.local
-# 编辑 .env.local 文件，填入必要的配置信息：
-# - NEXT_PUBLIC_APP_ID: Dify 应用 ID
-# - NEXT_PUBLIC_APP_KEY: Dify API 密钥
-# - NEXT_PUBLIC_API_URL: Dify API 地址
-```
+   ```
+   NEXT_PUBLIC_APP_ID=your_app_id    # 替换为你的 Dify 应用 ID
+   NEXT_PUBLIC_APP_KEY=your_api_key  # 替换为你的 Dify API 密钥
+   NEXT_PUBLIC_API_URL=https://api.dify.ai/v1
+   ```
 
 4. 开发模式运行
 
 ```bash
 npm run dev
-# 访问 http://localhost:33896
+# 启动成功后，打开浏览器访问：http://localhost:33896
 ```
 
 5. 生产环境构建
@@ -239,9 +283,9 @@ future-var-observatory/
 └── test/              # 测试文件
 ```
 
-## 环境变量
+## 环境变量说明
 
-必要的环境变量配置：
+必要的环境变量配置（填写在项目根目录的 `.env.local` 文件中）：
 
 - `NEXT_PUBLIC_APP_ID`: Dify 应用 ID
 - `NEXT_PUBLIC_APP_KEY`: Dify API 密钥
