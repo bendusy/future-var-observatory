@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import { APP_INFO } from '@/config'
-import { getLocaleOnServer } from '@/i18n/server'
 import Link from 'next/link'
 
 import './styles/globals.css'
@@ -11,14 +10,13 @@ export const metadata: Metadata = {
   description: '基于人工智能的未来变量观测系统',
 }
 
-const LocaleLayout = ({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
-}) => {
-  const locale = getLocaleOnServer()
+}) {
   return (
-    <html lang={locale ?? 'en'} className="h-full">
+    <html lang="zh-Hans" className="h-full">
       <body className="h-full">
         <div className="overflow-x-auto">
           <div className="w-screen min-h-screen min-w-[300px] flex flex-col">
@@ -60,5 +58,3 @@ const LocaleLayout = ({
     </html>
   )
 }
-
-export default LocaleLayout
