@@ -20,11 +20,4 @@ export const setSession = (sessionId: string) => {
   return { 'Set-Cookie': `session_id=${sessionId}` }
 }
 
-export async function fetchPredict(data: any) {
-  try {
-    const response = await client.createChatMessage({}, data.query, data.user, false)
-    return response
-  } catch (error) {
-    throw new Error('预测请求失败')
-  }
-}
+
