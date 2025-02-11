@@ -19,7 +19,8 @@
     "remark-parse": "^11.0.0",
     "remark-stringify": "^11.0.0",
     "unified": "^11.0.5",
-    "uuid": "^9.0.0"
+    "uuid": "^9.0.0",
+    "lunar-typescript": "^1.6.9"
   },
   "devDependencies": {
     "@tailwindcss/typography": "^0.5.9",
