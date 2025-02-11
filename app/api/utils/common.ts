@@ -28,7 +28,7 @@ export async function fetchPredict(data: any) {
       app_id: APP_ID,
       ...data
     })
-  });
+  })
 
   if (!response.ok) {
     throw new Error('预测请求失败')
