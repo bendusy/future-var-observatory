@@ -49,3 +49,9 @@ yarn.lock
 
 # pmpm
 pnpm-lock.yaml
+
+.next
+out
+node_modules
+.env*
+!.env.example

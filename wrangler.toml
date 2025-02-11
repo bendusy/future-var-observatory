@@ -1,14 +1,14 @@
 name = "future-variable-observer"
 compatibility_date = "2024-01-01"
-pages_build_output_dir = ".next"
 
 [build]
 command = "npm run build"
+
 [build.upload]
-format = "service-worker"
+format = "directory"
 
 [env.production]
 vars = { ENVIRONMENT = "production" }
 
 [site]
-bucket = ".next" 
+bucket = "out" 
