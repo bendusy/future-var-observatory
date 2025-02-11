@@ -50,6 +50,13 @@ export default function PredictionPage() {
   const [lunarInfo, setLunarInfo] = useState<{
     lunarDate: string
     bazi: string
+    wuxing: string
+    nayin: string
+    shishen: string
+    yun?: {
+      startInfo: string
+      daYun: string[]
+    }
   } | null>(null)
 
   // 生成年份选项：1900年至今年，倒序排列
@@ -67,9 +74,6 @@ export default function PredictionPage() {
 
   // 生成小时选项：0-23时
   const hourOptions = Array.from({ length: 24 }, (_, i) => i)
-
-  // 生成分钟选项：0-59分，每15分钟一个选项
-  const minuteOptions = Array.from({ length: 4 }, (_, i) => i * 15)
 
   // 根据年月计算当月天数
   const getDaysInMonth = (year: number, month: number) => {
@@ -100,10 +104,27 @@ export default function PredictionPage() {
     try {
       const solar = Solar.fromYmd(year, month, day)
       const lunar = solar.getLunar()
+      const eightChar = lunar.getEightChar()
+
+      // 计算大运
+      const yun = eightChar.getYun(form.getFieldValue('gender') === 'male' ? 1 : 0)
+      const daYunArr = yun.getDaYun()
+
+      // 获取大运信息
+      const daYunInfo = daYunArr.slice(0, 8).map((daYun, index) =>
+        `${daYun.getStartYear()}年 ${daYun.getStartAge()}岁 ${daYun.getGanZhi()}`
+      )
 
       return {
         lunarDate: `${lunar.getYearInChinese()}年${lunar.getMonthInChinese()}月${lunar.getDayInChinese()}`,
-        bazi: `${lunar.getYearInGanZhi()} ${lunar.getMonthInGanZhi()} ${lunar.getDayInGanZhi()} ${hour ? lunar.getTimeZhi() : ''}`
+        bazi: `${eightChar.getYear()} ${eightChar.getMonth()} ${eightChar.getDay()} ${hour ? eightChar.getTime() : ''}`,
+        wuxing: `${eightChar.getYearWuXing()},${eightChar.getMonthWuXing()},${eightChar.getDayWuXing()},${eightChar.getTimeWuXing()}`,
+        nayin: `${eightChar.getYearNaYin()},${eightChar.getMonthNaYin()},${eightChar.getDayNaYin()},${eightChar.getTimeNaYin()}`,
+        shishen: `年干:${eightChar.getYearShiShenGan()} 月干:${eightChar.getMonthShiShenGan()} 日干:${eightChar.getDayShiShenGan()} 时干:${eightChar.getTimeShiShenGan()}`,
+        yun: {
+          startInfo: `出生${yun.getStartYear()}年${yun.getStartMonth()}月${yun.getStartDay()}天后起运`,
+          daYun: daYunInfo
+        }
       }
     } catch (err) {
       console.error('Calculate lunar info error:', err)
@@ -126,17 +147,14 @@ export default function PredictionPage() {
   }, [form.getFieldValue('birthYear'), form.getFieldValue('birthMonth'),
   form.getFieldValue('birthDay'), form.getFieldValue('birthHour')])
 
-  const handleDateChange = (type: 'year' | 'month' | 'day' | 'hour', value: number) => {
-    if (type === 'year') setSelectedYear(value)
-    if (type === 'month') setSelectedMonth(value)
-
-    // 更新表单值后计算农历信息
+  const handleDateTimeChange = (type: 'year' | 'month' | 'day' | 'hour', value: number) => {
     const currentValues = form.getFieldsValue()
     const newValues = {
       ...currentValues,
-      [type === 'year' ? 'birthYear' : type === 'month' ? 'birthMonth' :
-        type === 'day' ? 'birthDay' : 'birthHour']: value
+      [`birth${type.charAt(0).toUpperCase() + type.slice(1)}`]: value
     }
+
+    form.setFieldsValue(newValues)
 
     if (newValues.birthYear && newValues.birthMonth && newValues.birthDay) {
       const info = calculateLunarInfo(
@@ -153,7 +171,7 @@ export default function PredictionPage() {
     const formData: PredictionForm = {
       ...values,
       birthDate: `${values.birthYear}-${String(values.birthMonth).padStart(2, '0')}-${String(values.birthDay).padStart(2, '0')}`,
-      birthTime: `${String(values.birthHour).padStart(2, '0')}:${String(values.birthMinute).padStart(2, '0')}`,
+      birthTime: `${String(values.birthHour).padStart(2, '0')}:00`,
     }
 
     setError('')
@@ -182,7 +200,7 @@ export default function PredictionPage() {
         initialValues={{
           calendarType: 'solar',
           birthDate: dayjs(),
-          birthTime: dayjs('12:00', 'HH:mm'),
+          birthHour: 12, // 默认午时
         }}
       >
         <Form.Item
@@ -219,7 +237,7 @@ export default function PredictionPage() {
           >
             <Select
               placeholder="年"
-              onChange={(value) => handleDateChange('year', value)}
+              onChange={(value) => handleDateTimeChange('year', value)}
               className="w-full"
             >
               {yearOptions.map(year => (
@@ -235,7 +253,7 @@ export default function PredictionPage() {
           >
             <Select
               placeholder="月"
-              onChange={(value) => handleDateChange('month', value)}
+              onChange={(value) => handleDateTimeChange('month', value)}
               className="w-full"
             >
               {monthOptions.map(month => (
@@ -249,7 +267,11 @@ export default function PredictionPage() {
             name="birthDay"
             rules={[{ required: true, message: '请选择日期' }]}
           >
-            <Select placeholder="日" className="w-full">
+            <Select
+              placeholder="日"
+              onChange={(value) => handleDateTimeChange('day', value)}
+              className="w-full"
+            >
               {currentDayOptions.map(day => (
                 <Option key={day} value={day}>{day}日</Option>
               ))}
@@ -261,7 +283,11 @@ export default function PredictionPage() {
             name="birthHour"
             rules={[{ required: true, message: '请选择时辰' }]}
           >
-            <Select placeholder="时辰" className="w-full">
+            <Select
+              placeholder="时辰"
+              onChange={(value) => handleDateTimeChange('hour', value)}
+              className="w-full"
+            >
               {timeSlots.map((slot, index) => (
                 <Option
                   key={index}
@@ -269,18 +295,6 @@ export default function PredictionPage() {
                 >
                   {slot.name} ({String(slot.start).padStart(2, '0')}:00-{String(slot.end).padStart(2, '0')}:00)
                 </Option>
-              ))}
-            </Select>
-          </Form.Item>
-
-          <Form.Item
-            label="分钟"
-            name="birthMinute"
-            rules={[{ required: true, message: '请选择分钟' }]}
-          >
-            <Select placeholder="分" className="w-full">
-              {minuteOptions.map(minute => (
-                <Option key={minute} value={minute}>{minute}分</Option>
               ))}
             </Select>
           </Form.Item>
@@ -300,6 +314,31 @@ export default function PredictionPage() {
               <Descriptions.Item label="八字" span={2}>
                 {lunarInfo.bazi}
               </Descriptions.Item>
+              <Descriptions.Item label="五行" span={2}>
+                {lunarInfo.wuxing}
+              </Descriptions.Item>
+              <Descriptions.Item label="纳音" span={2}>
+                {lunarInfo.nayin}
+              </Descriptions.Item>
+              <Descriptions.Item label="十神" span={2}>
+                {lunarInfo.shishen}
+              </Descriptions.Item>
+              {lunarInfo.yun && (
+                <>
+                  <Descriptions.Item label="起运时间" span={2}>
+                    {lunarInfo.yun.startInfo}
+                  </Descriptions.Item>
+                  <Descriptions.Item label="大运" span={2}>
+                    <div className="grid grid-cols-2 gap-2">
+                      {lunarInfo.yun.daYun.map((dayun, index) => (
+                        <div key={index} className="text-sm">
+                          {dayun}
+                        </div>
+                      ))}
+                    </div>
+                  </Descriptions.Item>
+                </>
+              )}
             </Descriptions>
           </div>
         )}
