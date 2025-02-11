@@ -1,4 +1,6 @@
-export interface PredictionLog {
+import { v4 as uuidv4 } from 'uuid'
+
+interface LogData {
   userId: string
   timestamp: number
   inputs: {
@@ -9,14 +11,14 @@ export interface PredictionLog {
   result: string
 }
 
-export const logPrediction = async (log: PredictionLog) => {
-  try {
-    console.log('Prediction Log:', {
-      ...log,
-      timestamp: Date.now()
-    })
-    // TODO: 后续可以添加数据存储逻辑
-  } catch (error) {
-    console.error('Failed to log prediction:', error)
+export async function logPrediction(data: LogData) {
+  const logEntry = {
+    id: uuidv4(),
+    ...data,
   }
+
+  console.log('Prediction Log:', logEntry)
+  
+  // TODO: 未来可以添加日志存储服务
+  return logEntry
 } 

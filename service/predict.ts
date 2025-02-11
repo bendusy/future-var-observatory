@@ -80,6 +80,5 @@ function generatePrompt(data: PredictionForm, bazi: BaziInfo): string {
 - 公历：${bazi.solarDate}
 - 农历：${bazi.lunarDate}
 - 八字：${bazi.year} ${bazi.month} ${bazi.day} ${bazi.hour}
-- 当前时间：${bazi.currentBazi}
 - 预测方向：${directions}${customDirs}`
 } 
