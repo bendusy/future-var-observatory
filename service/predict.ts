@@ -192,11 +192,7 @@ function generatePrompt(data: PredictionForm, bazi: BaziInfo, lunarInfo: LunarIn
 ${basicInfo}
 ${predictionDirections}
 
-请根据以上信息进行命理分析和预测。分析内容应包括：
 
-1. 八字格局总论
-2. 五行喜忌分析
-3. 大运流年吉凶
-4. ${directions.split('、').filter(Boolean).map(dir => `${dir}运势分析`).join('\n5. ')}
-${customDirs ? `6. ${customDirs}运势分析` : ''}`
+${directions.split('、').filter(Boolean).map((dir, index) => `${index + 1}. ${dir}运势分析`).join('\n')}
+${customDirs ? `\n${directions.split('、').length + 1}. ${customDirs}运势分析` : ''}`
 } 

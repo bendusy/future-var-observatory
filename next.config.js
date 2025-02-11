@@ -19,6 +19,14 @@ const nextConfig = {
   output: 'standalone',
   images: {
     unoptimized: true
+  },
+  // 设置默认端口为 33896
+  env: {
+    PORT: process.env.PORT || '33896'
+  },
+  // 配置开发服务器
+  devServer: {
+    port: 33896
   }
 }
 

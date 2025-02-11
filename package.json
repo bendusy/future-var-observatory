@@ -4,9 +4,9 @@
   "description": "未来变量观测局 - 基于 Next.js 的现代命理预测平台",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev -p 33896",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 33896",
     "lint": "next lint",
     "fix": "next lint --fix",
     "eslint-fix": "eslint . --fix",

@@ -166,8 +166,29 @@ future-var-observatory/
 - `NEXT_PUBLIC_APP_ID`: Dify 应用 ID
 - `NEXT_PUBLIC_APP_KEY`: Dify API 密钥
 - `NEXT_PUBLIC_API_URL`: Dify API 地址（默认：<https://api.dify.ai/v1）>
-- `PORT`: 服务端口（默认：33896）
+- `PORT`: 服务端口（默认：33896，已在配置文件中固定，一般无需修改）
 - `NODE_ENV`: 运行环境（development/production）
+
+### 修改默认端口
+
+如果需要修改默认端口 33896，可以：
+
+1. 方法一：使用环境变量（临时）
+
+```bash
+# Linux/Mac
+PORT=3000 npm run dev  # 开发模式
+PORT=3000 npm start    # 生产模式
+
+# Windows PowerShell
+$env:PORT=3000; npm run dev  # 开发模式
+$env:PORT=3000; npm start    # 生产模式
+```
+
+2. 方法二：修改配置文件（永久）
+   - 编辑 `package.json`，修改 `scripts` 中的端口号
+   - 编辑 `next.config.js`，修改 `devServer.port` 的值
+   - 编辑 `.env.local`，修改 `PORT` 的值
 
 ## 测试
 
