@@ -47,103 +47,35 @@ if [ "${NODE_VERSION%%.*}" -lt 22 ]; then
     fi
 fi
 
-# 检查 npm 版本
+# 检查 npm 版本并更新
 NPM_VERSION=$(npm -v)
 if [ "$(echo $NPM_VERSION | cut -d'.' -f1)" -lt 10 ]; then
-    echo "npm 版本需要 >= 10，当前版本: $NPM_VERSION"
     echo "正在更新 npm..."
     npm install -g npm@latest
 fi
 
-# 检查并安装 pm2
-install_pm2() {
-    if ! command -v pm2 >/dev/null 2>&1; then
-        echo "正在安装 pm2..."
-        npm install -g pm2
-    else
-        echo "检测到 pm2 已安装"
-    fi
-}
-
-# 检查依赖是否已安装
-check_dependencies() {
-    # 检查 node_modules 目录
-    if [ -d "node_modules" ]; then
-        echo "检测到依赖已安装，检查核心依赖完整性..."
-        
-        # 检查核心依赖
-        core_dependencies=(
-            "next"
-            "react"
-            "react-dom"
-            "typescript"
-            "tailwindcss"
-            "antd"
-            "lunar-typescript"
-            "dayjs"
-            "react-markdown"
-            "remark-gfm"
-            "remark-breaks"
-            "@tailwindcss/typography"
-        )
-        
-        missing_deps=()
-        for dep in "${core_dependencies[@]}"; do
-            if [ ! -d "node_modules/$dep" ]; then
-                missing_deps+=("$dep")
-            fi
-        done
-        
-        if [ ${#missing_deps[@]} -gt 0 ]; then
-            echo "发现以下核心依赖缺失:"
-            printf '%s\n' "${missing_deps[@]/#/- }"
-            echo "是否重新安装依赖？[y/N]"
-            read -r reinstall_choice
-            if [[ $reinstall_choice =~ ^[Yy]$ ]]; then
-                return 1
-            fi
-        else
-            echo "核心依赖完整性检查通过"
-            return 0
-        fi
-    fi
-    
-    # 检查 package-lock.json
-    if [ -f "package-lock.json" ]; then
-        echo "检测到 package-lock.json，是否重新安装依赖？[y/N]"
-        read -r reinstall_choice
-        if [[ ! $reinstall_choice =~ ^[Yy]$ ]]; then
-            return 0
-        fi
-    fi
-    return 1
-}
-
 # 安装依赖
-if ! check_dependencies; then
-    echo "正在安装依赖..."
+echo "正在安装依赖..."
+if ! npm install; then
+    echo "尝试使用淘宝镜像重新安装..."
+    npm config set registry https://registry.npmmirror.com
     if ! npm install; then
-        echo "依赖安装失败，尝试使用淘宝镜像重新安装..."
-        npm config set registry https://registry.npmmirror.com
-        if ! npm install; then
-            echo "依赖安装失败，请检查网络连接或手动安装"
-            exit 1
-        fi
+        echo "依赖安装失败，请检查网络连接"
+        exit 1
     fi
-    echo "依赖安装完成"
 fi
 
-# 安装 pm2
-install_pm2
-
 # 处理环境变量
-function setup_env() {
+setup_env() {
     local env_file=".env.local"
     
-    # 如果环境变量文件已存在,直接返回
+    # 如果环境变量文件已存在，询问是否覆盖
     if [ -f $env_file ]; then
-        echo "检测到 $env_file 文件已存在,跳过配置..."
-        return 0
+        echo "检测到 $env_file 文件已存在，是否覆盖？[y/N]"
+        read -r overwrite_choice
+        if [[ ! $overwrite_choice =~ ^[Yy]$ ]]; then
+            return 0
+        fi
     fi
     
     # 如果命令行参数存在，使用命令行参数
@@ -155,17 +87,11 @@ function setup_env() {
         return 0
     fi
     
-    # 如果环境变量文件不存在，创建并提示输入
-    echo "未检测到环境变量配置，请输入以下信息："
-    
-    echo -n "请输入 Dify 应用 ID (NEXT_PUBLIC_APP_ID): "
-    read -r app_id
-    
-    echo -n "请输入 Dify API 密钥 (NEXT_PUBLIC_APP_KEY): "
-    read -r app_key
-    
-    echo -n "请输入 Dify API 地址 [默认: https://api.dify.ai/v1]: "
-    read -r api_url
+    # 交互式配置
+    echo "请输入配置信息："
+    read -p "Dify 应用 ID (NEXT_PUBLIC_APP_ID): " app_id
+    read -p "Dify API 密钥 (NEXT_PUBLIC_APP_KEY): " app_key
+    read -p "Dify API 地址 [默认: https://api.dify.ai/v1]: " api_url
     api_url=${api_url:-https://api.dify.ai/v1}
     
     echo "NEXT_PUBLIC_APP_ID=$app_id" > $env_file
@@ -182,33 +108,21 @@ setup_env "$1" "$2" "$3"
 echo "正在构建项目..."
 npm run build
 
-# 使用 pm2 启动服务
+# 安装并配置 PM2
+echo "正在安装 PM2..."
+npm install -g pm2
+
+# 启动服务
 echo "正在启动服务..."
-# 停止已存在的实例
-pm2 stop webapp-8zi 2>/dev/null || true
-pm2 delete webapp-8zi 2>/dev/null || true
-
-# 启动新实例 (使用 standalone 模式)
-pm2 start .next/standalone/server.js --name "webapp-8zi" -- -p 33896
-
-# 保存 pm2 配置
-pm2 save
-
-# 设置开机自启
-echo "是否设置开机自启？[y/N]"
-read -r autostart_choice
-if [[ $autostart_choice =~ ^[Yy]$ ]]; then
-    pm2 startup
-    echo "已设置开机自启"
-fi
+pm2 start npm --name "webapp-8zi" -- start
 
 echo "=============================="
 echo "部署完成！"
 echo "服务已在后台启动，访问 http://localhost:33896"
 echo ""
-echo "常用命令："
-echo "- 查看运行状态：pm2 status"
-echo "- 查看应用日志：pm2 logs webapp-8zi"
-echo "- 重启应用：pm2 restart webapp-8zi"
-echo "- 停止应用：pm2 stop webapp-8zi"
-echo "- 删除应用：pm2 delete webapp-8zi" 
+echo "服务管理命令："
+echo "- 查看状态：pm2 status"
+echo "- 查看日志：pm2 logs webapp-8zi"
+echo "- 重启服务：pm2 restart webapp-8zi"
+echo "- 停止服务：pm2 stop webapp-8zi"
+echo "- 开机自启：pm2 startup && pm2 save" 
