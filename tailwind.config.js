@@ -7,6 +7,15 @@ module.exports = {
   darkMode: 'media', // 使用系统主题
   theme: {
     extend: {
+      backgroundColor: {
+        background: 'hsl(var(--background))',
+      },
+      textColor: {
+        foreground: 'hsl(var(--foreground))',
+      },
+      borderColor: {
+        border: 'hsl(var(--border))',
+      },
       colors: {
         gray: {
           50: '#F9FAFB',
