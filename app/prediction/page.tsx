@@ -248,94 +248,89 @@ export default function PredictionPage() {
         className="dark:text-dark-text"
       >
         <Form.Item
-          label="性别"
           name="gender"
+          label="性别"
           rules={[{ required: true, message: '请选择性别' }]}
         >
-          <Radio.Group buttonStyle="solid" className="w-full dark:bg-dark-container">
-            <Radio.Button value="male" className="w-1/3 text-center dark:text-dark-text dark:border-dark-border">👨 男</Radio.Button>
-            <Radio.Button value="female" className="w-1/3 text-center dark:text-dark-text dark:border-dark-border">👩 女</Radio.Button>
-            <Radio.Button value="other" className="w-1/3 text-center dark:text-dark-text dark:border-dark-border">⭐ 其他</Radio.Button>
+          <Radio.Group className="w-full">
+            <div className="flex justify-between w-full p-2 bg-white dark:bg-dark-container rounded-lg">
+              <Radio value="male" className="dark:text-dark-text">👨 男</Radio>
+              <Radio value="female" className="dark:text-dark-text">👩 女</Radio>
+              <Radio value="other" className="dark:text-dark-text">✨ 其他</Radio>
+            </div>
           </Radio.Group>
         </Form.Item>
 
-        <Form.Item
-          label="历法选择"
-          name="calendarType"
-        >
-          <Radio.Group
-            onChange={(e) => setCalendarType(e.target.value)}
-            buttonStyle="solid"
-            className="w-full dark:bg-dark-container"
-          >
-            <Radio.Button value="solar" className="w-1/2 text-center dark:text-dark-text dark:border-dark-border">📅 公历</Radio.Button>
-            <Radio.Button value="lunar" className="w-1/2 text-center dark:text-dark-text dark:border-dark-border">🏮 农历</Radio.Button>
-          </Radio.Group>
-        </Form.Item>
-
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <Form.Item
-            label="出生年份"
             name="birthYear"
-            rules={[{ required: true, message: '请选择出生年份' }]}
+            label="年"
+            rules={[{ required: true, message: '请选择年份' }]}
           >
             <Select
-              placeholder="年"
               onChange={(value) => handleDateTimeChange('year', value)}
-              className="w-full"
+              className="w-full dark:bg-dark-container dark:text-dark-text"
+              dropdownClassName="dark:bg-dark-container dark:text-dark-text"
             >
               {yearOptions.map(year => (
-                <Option key={year} value={year}>{year}年</Option>
+                <Option key={year} value={year} className="dark:text-dark-text dark:hover:bg-dark-bg">
+                  {year}年
+                </Option>
               ))}
             </Select>
           </Form.Item>
 
           <Form.Item
-            label="月份"
             name="birthMonth"
+            label="月"
             rules={[{ required: true, message: '请选择月份' }]}
           >
             <Select
-              placeholder="月"
               onChange={(value) => handleDateTimeChange('month', value)}
-              className="w-full"
+              className="w-full dark:bg-dark-container dark:text-dark-text"
+              dropdownClassName="dark:bg-dark-container dark:text-dark-text"
             >
               {monthOptions.map(month => (
-                <Option key={month} value={month}>{month}月</Option>
+                <Option key={month} value={month} className="dark:text-dark-text dark:hover:bg-dark-bg">
+                  {month}月
+                </Option>
               ))}
             </Select>
           </Form.Item>
 
           <Form.Item
-            label="日期"
             name="birthDay"
+            label="日"
             rules={[{ required: true, message: '请选择日期' }]}
           >
             <Select
-              placeholder="日"
               onChange={(value) => handleDateTimeChange('day', value)}
-              className="w-full"
+              className="w-full dark:bg-dark-container dark:text-dark-text"
+              dropdownClassName="dark:bg-dark-container dark:text-dark-text"
             >
               {currentDayOptions.map(day => (
-                <Option key={day} value={day}>{day}日</Option>
+                <Option key={day} value={day} className="dark:text-dark-text dark:hover:bg-dark-bg">
+                  {day}日
+                </Option>
               ))}
             </Select>
           </Form.Item>
 
           <Form.Item
-            label="时辰"
             name="birthHour"
+            label="时辰"
             rules={[{ required: true, message: '请选择时辰' }]}
           >
             <Select
-              placeholder="时辰"
               onChange={(value) => handleDateTimeChange('hour', value)}
-              className="w-full"
+              className="w-full dark:bg-dark-container dark:text-dark-text"
+              dropdownClassName="dark:bg-dark-container dark:text-dark-text"
             >
               {timeSlots.map((slot, index) => (
                 <Option
                   key={index}
                   value={slot.start}
+                  className="dark:text-dark-text dark:hover:bg-dark-bg"
                 >
                   {slot.name} ({String(slot.start).padStart(2, '0')}:00-{String(slot.end).padStart(2, '0')}:00)
                 </Option>
@@ -343,6 +338,18 @@ export default function PredictionPage() {
             </Select>
           </Form.Item>
         </div>
+
+        <Form.Item
+          name="calendarType"
+          label="历法选择"
+        >
+          <Radio.Group className="w-full" onChange={(e) => setCalendarType(e.target.value)}>
+            <div className="flex justify-between w-full p-2 bg-white dark:bg-dark-container rounded-lg">
+              <Radio value="solar" className="dark:text-dark-text">📅 公历</Radio>
+              <Radio value="lunar" className="dark:text-dark-text">🌙 农历</Radio>
+            </div>
+          </Radio.Group>
+        </Form.Item>
 
         {lunarInfo && (
           <div className="my-4 p-4 bg-gray-50 dark:bg-dark-container rounded-lg">

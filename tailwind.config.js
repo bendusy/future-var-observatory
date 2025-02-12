@@ -4,7 +4,7 @@ module.exports = {
     './app/**/*.{js,ts,jsx,tsx,mdx}',
     './components/**/*.{js,ts,jsx,tsx,mdx}'
   ],
-  darkMode: 'media', // 使用系统主题
+  darkMode: 'class', // 使用 next-themes 控制
   theme: {
     extend: {
       backgroundColor: {

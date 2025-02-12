@@ -30,15 +30,31 @@ export function Providers({ children }: { children: React.ReactNode }) {
 
 // 分离 Ant Design 主题配置
 function AntdProvider({ children }: { children: React.ReactNode }) {
-  const { theme: currentTheme } = useTheme()
+  const { theme: currentTheme, systemTheme } = useTheme()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return <ConfigProvider theme={{
+      algorithm: theme.defaultAlgorithm,
+      token: {
+        colorPrimary: '#1677ff',
+        borderRadius: 8,
+      }
+    }}>{children}</ConfigProvider>
+  }
+
+  const isDark =
+    currentTheme === 'dark' ||
+    (currentTheme === 'system' && systemTheme === 'dark')
 
   return (
     <ConfigProvider
       theme={{
-        algorithm:
-          currentTheme === 'dark'
-            ? theme.darkAlgorithm
-            : theme.defaultAlgorithm,
+        algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
           colorPrimary: '#1677ff',
           borderRadius: 8,
@@ -47,17 +63,27 @@ function AntdProvider({ children }: { children: React.ReactNode }) {
           Button: {
             controlHeight: 40,
             paddingContentHorizontal: 24,
+            colorBgContainer: isDark ? '#1f1f1f' : '#ffffff',
+            colorText: isDark ? '#ffffff' : undefined,
           },
           Input: {
             controlHeight: 40,
             paddingContentHorizontal: 16,
+            colorBgContainer: isDark ? '#1f1f1f' : '#ffffff',
+            colorText: isDark ? '#ffffff' : undefined,
           },
           Select: {
             controlHeight: 40,
+            colorBgContainer: isDark ? '#1f1f1f' : '#ffffff',
+            colorText: isDark ? '#ffffff' : undefined,
+            colorBgElevated: isDark ? '#1f1f1f' : '#ffffff',
+            optionSelectedBg: isDark ? '#141414' : '#e6f4ff',
           },
           Modal: {
             borderRadiusLG: 12,
             paddingContentHorizontalLG: 24,
+            colorBgElevated: isDark ? '#1f1f1f' : '#ffffff',
+            colorText: isDark ? '#ffffff' : undefined,
           }
         }
       }}
