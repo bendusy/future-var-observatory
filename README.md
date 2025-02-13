@@ -17,14 +17,61 @@
   - 系统主题自动切换
   - 直观的数据可视化
 
+## 系统要求
+
+- Node.js >= 22.x
+- npm >= 10.x
+- Dify >= 0.3.30
+- 内存 >= 4GB
+- 磁盘空间 >= 2GB
+
 ## 技术栈
 
 - 框架：Next.js 14 + TypeScript 5
 - UI：Tailwind CSS 3 + Ant Design 5
 - 命理：lunar-typescript
 - 工具：dayjs + react-markdown
+- 部署：PM2 (Linux) / Windows Service
+- API：Dify AI Assistant
 
-## 快速开始
+## 开发环境设置
+
+1. 安装依赖
+
+```bash
+npm install
+```
+
+2. 配置开发环境
+
+```bash
+cp .env.example .env.local
+# 编辑 .env.local 配置文件
+```
+
+3. 启动开发服务器
+
+```bash
+npm run dev
+```
+
+4. 代码质量控制
+
+```bash
+npm run lint      # 代码检查
+npm run format    # 代码格式化
+npm run type-check # 类型检查
+```
+
+## 测试
+
+```bash
+npm run test          # 运行所有测试
+npm run test:unit     # 仅运行单元测试
+npm run test:e2e      # 仅运行端到端测试
+```
+
+## 构建和部署
 
 【注意】本项目依赖于 Dify 服务，必须先安装部署 Dify 才能正常使用。
 
@@ -214,3 +261,62 @@ npm install
 ## 许可证
 
 MIT License
+
+## 联系方式
+
+- 问题反馈：[GitHub Issues](https://github.com/bendusy/webapp-8zi/issues)
+- 邮件联系：[your-email@example.com]
+- 讨论群组：[QQ群/Discord/...]
+
+## API 文档
+
+详细的 API 文档请参见 [docs/api/README.md](docs/api/README.md)
+
+## 开发规范
+
+1. 代码风格
+   - 使用 TypeScript 严格模式
+   - 遵循 ESLint 规则
+   - 使用 Prettier 格式化代码
+
+2. 提交规范
+   - feat: 新功能
+   - fix: 修复问题
+   - docs: 文档变更
+   - style: 代码格式
+   - refactor: 代码重构
+   - test: 测试相关
+   - chore: 其他修改
+
+3. 分支管理
+   - main: 主分支，保持稳定
+   - develop: 开发分支
+   - feature/*: 功能分支
+   - hotfix/*: 紧急修复分支
+
+4. 版本发布流程
+   1. 更新版本号
+   2. 更新 CHANGELOG.md
+   3. 创建发布标签
+   4. 合并至主分支
+
+## 项目结构说明
+
+```
+webapp-8zi/
+├── app/                # Next.js 应用目录
+│   ├── components/     # 共用组件
+│   │   ├── ui/        # UI 组件
+│   │   └── business/  # 业务组件
+│   ├── prediction/     # 预测功能页面
+│   └── providers.tsx   # 全局提供者
+├── docs/              # 项目文档
+├── service/           # 服务层
+├── types/             # TypeScript 类型
+├── utils/             # 工具函数
+└── scripts/           # 部署脚本
+```
+
+## 更新日志
+
+详见 [CHANGELOG.md](CHANGELOG.md)
