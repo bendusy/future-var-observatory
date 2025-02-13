@@ -26,6 +26,8 @@
 
 ## 快速开始
 
+【注意】本项目依赖于 Dify 服务，必须先安装部署 Dify 才能正常使用。
+
 ### Windows 用户
 
 ```powershell
