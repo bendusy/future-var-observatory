@@ -28,6 +28,28 @@
 
 【注意】本项目依赖于 Dify 服务，必须先安装部署 Dify 才能正常使用。
 
+### 前置要求
+
+1. 部署 Dify 服务
+   - 访问 [Dify 官方文档](https://docs.dify.ai/getting-started/install-self-hosted) 按照指南部署
+   - 推荐使用 Docker 方式部署
+   - 确保 Dify 服务正常运行（最低版本要求：0.3.30）
+
+2. 配置 Dify 应用
+   - 在 Dify 控制台创建新应用
+   - 选择 "AI Assistant" 类型
+   - 记录应用的 APP_ID 和 API_KEY
+   - 确保应用状态为"已发布"
+
+3. 验证 Dify 服务
+
+   ```bash
+   # 测试 Dify API 是否可用
+   curl -X POST "YOUR_DIFY_API_URL/chat-messages" \
+   -H "Authorization: Bearer YOUR_API_KEY" \
+   -H "Content-Type: application/json"
+   ```
+
 ### Windows 用户
 
 ```powershell

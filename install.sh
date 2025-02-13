@@ -4,6 +4,41 @@
 echo "欢迎使用未来变量观测局一键部署脚本"
 echo "=============================="
 
+# 检查 Dify 服务可用性
+check_dify_service() {
+    local app_id=$1
+    local api_key=$2
+    local api_url=$3
+    
+    echo "正在检查 Dify 服务可用性..."
+    
+    # 检查API地址是否可访问
+    if ! curl -s --head "$api_url" > /dev/null; then
+        echo "错误: 无法连接到 Dify 服务 ($api_url)"
+        echo "请确保："
+        echo "1. Dify 服务已正确部署"
+        echo "2. API 地址可以访问"
+        echo "3. 如果是自托管，请确保版本 >= 0.3.30"
+        return 1
+    fi
+    
+    # 验证 APP_ID 和 API_KEY
+    if ! curl -s -X POST "$api_url/chat-messages" \
+        -H "Authorization: Bearer $api_key" \
+        -H "Content-Type: application/json" \
+        -d '{"inputs": {}, "query": "test"}' > /dev/null; then
+        echo "错误: APP_ID 或 API_KEY 无效"
+        echo "请检查："
+        echo "1. APP_ID 和 API_KEY 是否正确"
+        echo "2. 应用是否已发布"
+        echo "3. 应用类型是否为 AI Assistant"
+        return 1
+    fi
+    
+    echo "Dify 服务检查通过"
+    return 0
+}
+
 # 检查并安装 Node.js
 install_nodejs() {
     echo "正在安装 Node.js 22.x ..."
@@ -81,6 +116,9 @@ setup_env() {
     # 如果命令行参数存在，使用命令行参数
     if [ ! -z "$1" ] && [ ! -z "$2" ] && [ ! -z "$3" ]; then
         echo "使用命令行参数配置环境变量..."
+        if ! check_dify_service "$1" "$2" "$3"; then
+            exit 1
+        fi
         echo "NEXT_PUBLIC_APP_ID=$1" > $env_file
         echo "NEXT_PUBLIC_APP_KEY=$2" >> $env_file
         echo "NEXT_PUBLIC_API_URL=$3" >> $env_file
@@ -88,11 +126,23 @@ setup_env() {
     fi
     
     # 交互式配置
-    echo "请输入配置信息："
-    read -p "Dify 应用 ID (NEXT_PUBLIC_APP_ID): " app_id
-    read -p "Dify API 密钥 (NEXT_PUBLIC_APP_KEY): " app_key
-    read -p "Dify API 地址 [默认: https://api.dify.ai/v1]: " api_url
-    api_url=${api_url:-https://api.dify.ai/v1}
+    while true; do
+        echo "请输入配置信息："
+        read -p "Dify 应用 ID (NEXT_PUBLIC_APP_ID): " app_id
+        read -p "Dify API 密钥 (NEXT_PUBLIC_APP_KEY): " app_key
+        read -p "Dify API 地址 [默认: https://api.dify.ai/v1]: " api_url
+        api_url=${api_url:-https://api.dify.ai/v1}
+        
+        if check_dify_service "$app_id" "$app_key" "$api_url"; then
+            break
+        fi
+        
+        echo "是否重新输入配置？[Y/n]"
+        read -r retry_choice
+        if [[ ! $retry_choice =~ ^[Yy]$ ]] && [ ! -z "$retry_choice" ]; then
+            exit 1
+        fi
+    done
     
     echo "NEXT_PUBLIC_APP_ID=$app_id" > $env_file
     echo "NEXT_PUBLIC_APP_KEY=$app_key" >> $env_file

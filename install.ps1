@@ -2,6 +2,61 @@
 Write-Host "欢迎使用未来变量观测局一键部署脚本"
 Write-Host "=============================="
 
+# 检查 Dify 服务可用性
+function Test-DifyService {
+    param (
+        [string]$AppId,
+        [string]$AppKey,
+        [string]$ApiUrl
+    )
+    
+    Write-Host "正在检查 Dify 服务可用性..."
+    
+    # 检查API地址是否可访问
+    try {
+        $response = Invoke-WebRequest -Uri $ApiUrl -Method Head -UseBasicParsing
+        if ($response.StatusCode -ne 200) {
+            throw
+        }
+    }
+    catch {
+        Write-Host "错误: 无法连接到 Dify 服务 ($ApiUrl)"
+        Write-Host "请确保："
+        Write-Host "1. Dify 服务已正确部署"
+        Write-Host "2. API 地址可以访问"
+        Write-Host "3. 如果是自托管，请确保版本 >= 0.3.30"
+        return $false
+    }
+    
+    # 验证 APP_ID 和 API_KEY
+    try {
+        $headers = @{
+            "Authorization" = "Bearer $AppKey"
+            "Content-Type"  = "application/json"
+        }
+        $body = @{
+            "inputs" = @{}
+            "query"  = "test"
+        } | ConvertTo-Json
+        
+        $response = Invoke-WebRequest -Uri "$ApiUrl/chat-messages" -Method Post -Headers $headers -Body $body -UseBasicParsing
+        if ($response.StatusCode -ne 200) {
+            throw
+        }
+    }
+    catch {
+        Write-Host "错误: APP_ID 或 API_KEY 无效"
+        Write-Host "请检查："
+        Write-Host "1. APP_ID 和 API_KEY 是否正确"
+        Write-Host "2. 应用是否已发布"
+        Write-Host "3. 应用类型是否为 AI Assistant"
+        return $false
+    }
+    
+    Write-Host "Dify 服务检查通过"
+    return $true
+}
+
 # 安装 Node.js 函数
 function Install-NodeJS {
     Write-Host "正在安装 Node.js 22.x ..."
@@ -102,6 +157,9 @@ function Setup-Env {
     # 如果命令行参数存在，使用命令行参数
     if ($AppId -and $AppKey -and $ApiUrl) {
         Write-Host "使用命令行参数配置环境变量..."
+        if (-not (Test-DifyService $AppId $AppKey $ApiUrl)) {
+            exit 1
+        }
         @"
 NEXT_PUBLIC_APP_ID=$AppId
 NEXT_PUBLIC_APP_KEY=$AppKey
@@ -111,14 +169,26 @@ NEXT_PUBLIC_API_URL=$ApiUrl
     }
     
     # 交互式配置
-    Write-Host "请输入配置信息："
-    $appId = Read-Host "Dify 应用 ID (NEXT_PUBLIC_APP_ID)"
-    $appKey = Read-Host "Dify API 密钥 (NEXT_PUBLIC_APP_KEY)"
-    $apiUrl = Read-Host "Dify API 地址 [默认: https://api.dify.ai/v1]"
-    
-    if (-not $apiUrl) {
-        $apiUrl = "https://api.dify.ai/v1"
-    }
+    do {
+        Write-Host "请输入配置信息："
+        $appId = Read-Host "Dify 应用 ID (NEXT_PUBLIC_APP_ID)"
+        $appKey = Read-Host "Dify API 密钥 (NEXT_PUBLIC_APP_KEY)"
+        $apiUrl = Read-Host "Dify API 地址 [默认: https://api.dify.ai/v1]"
+        
+        if (-not $apiUrl) {
+            $apiUrl = "https://api.dify.ai/v1"
+        }
+        
+        if (Test-DifyService $appId $appKey $apiUrl) {
+            break
+        }
+        
+        Write-Host "是否重新输入配置？[Y/n]"
+        $retryChoice = Read-Host
+        if ($retryChoice -eq "n" -or $retryChoice -eq "N") {
+            exit 1
+        }
+    } while ($true)
     
     @"
 NEXT_PUBLIC_APP_ID=$appId
