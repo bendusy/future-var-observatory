@@ -12,14 +12,14 @@ update_code() {
     if [ ! -d ".git" ]; then
         echo "错误: 当前目录不是 git 仓库"
         return 1
-    }
+    fi
     
     # 保存当前分支名
     current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
     if [ $? -ne 0 ]; then
         echo "错误: 无法获取当前分支"
         return 1
-    }
+    fi
     
     # 保存本地修改
     if ! git diff --quiet HEAD; then
