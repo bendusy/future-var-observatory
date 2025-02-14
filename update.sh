@@ -16,8 +16,9 @@ fi
 # 如果更新成功，重启服务
 if [ $? -eq 0 ]; then
     echo "正在重启服务..."
-    # 使用新的 PM2 处理函数
-    if source ./install.sh > /dev/null 2>&1; then
+    # 加载 PM2 工具函数
+    if [ -f "./pm2-utils.sh" ]; then
+        source ./pm2-utils.sh
         handle_pm2_service "restart"
         handle_pm2_service "save"
         echo "=============================="
@@ -30,7 +31,7 @@ if [ $? -eq 0 ]; then
         echo "- 重启服务：pm2 restart fvo"
         echo "- 停止服务：pm2 stop fvo"
     else
-        echo "更新失败：无法加载 PM2 处理函数"
+        echo "错误: PM2 工具函数文件不存在"
         exit 1
     fi
 else
