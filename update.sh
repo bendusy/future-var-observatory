@@ -10,17 +10,18 @@ if [ ! -f "install.sh" ]; then
     exit 1
 fi
 
+# 检查 PM2 服务
+if ! pm2 describe fvo > /dev/null; then
+    echo "错误: PM2 服务不存在，请先运行安装脚本"
+    exit 1
+fi
+
 # 执行更新
 ./install.sh --update
 
 # 如果更新成功，重启服务
 if [ $? -eq 0 ]; then
     echo "正在重启服务..."
-    # 重启 PM2 服务
-    if ! pm2 describe fvo > /dev/null; then
-        echo "错误: PM2 服务不存在，请先运行安装脚本"
-        exit 1
-    fi
     pm2 restart fvo
     if [ "${PM2_STARTUP_ENABLED}" = "true" ]; then
         pm2 save

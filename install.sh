@@ -94,7 +94,17 @@ show_menu() {
         3)
             if update_code; then
                 echo "正在重启服务..."
+                # 检查服务是否存在
+                if ! pm2 describe fvo > /dev/null; then
+                    echo "错误: PM2 服务不存在，请先完成完整部署"
+                    exit 1
+                fi
+                # 重启服务
                 pm2 restart fvo
+                if [ "${PM2_STARTUP_ENABLED}" = "true" ]; then
+                    pm2 save
+                fi
+                echo "服务已重启"
             fi
             exit $?
             ;;
