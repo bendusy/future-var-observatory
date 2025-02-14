@@ -31,7 +31,7 @@
 ### 2.1 目录结构
 
 ```
-webapp-8zi/
+future-var-observatory/
 ├── app/                # Next.js 应用目录
 │   ├── components/     # 共用组件
 │   │   ├── ui/        # UI组件
@@ -278,15 +278,9 @@ npm run build
 
 4. 部署服务
 \`\`\`bash
+pm2 start npm --name "fvo" -- start
 
-# Linux
-
-pm2 start npm --name "webapp-8zi" -- start
-
-# Windows
-
-node install-service.js
-\`\`\`
+```
 
 ## 六、注意事项
 

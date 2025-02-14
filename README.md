@@ -1,5 +1,4 @@
 # 未来变量观测局
-
 基于 Next.js 14 开发的现代命理预测平台，提供精准的八字分析和运势预测功能。
 
 ## 功能特点
@@ -34,7 +33,47 @@
 - 部署：PM2 (Linux) / Windows Service
 - API：Dify AI Assistant
 
-## 开发环境设置
+## 快速开始
+
+### 一键部署（推荐）
+
+使用 curl 安装:
+
+```bash
+# 默认安装到当前目录下的 future-var-observatory
+curl -fsSL https://raw.githubusercontent.com/bendusy/future-var-observatory/main/quickstart.sh | bash
+
+# 安装到指定目录
+curl -fsSL https://raw.githubusercontent.com/bendusy/future-var-observatory/main/quickstart.sh | bash -s -- /your/install/path
+```
+
+或使用 wget 安装:
+
+```bash
+# 默认安装到当前目录下的 future-var-observatory
+wget -qO- https://raw.githubusercontent.com/bendusy/future-var-observatory/main/quickstart.sh | bash
+
+# 安装到指定目录
+wget -qO- https://raw.githubusercontent.com/bendusy/future-var-observatory/main/quickstart.sh | bash -s -- /your/install/path
+```
+
+一键更新:
+
+```bash
+# 更新当前目录下的安装
+curl -fsSL https://raw.githubusercontent.com/bendusy/future-var-observatory/main/quickstart.sh | bash -s -- --update
+
+# 更新指定目录的安装
+curl -fsSL https://raw.githubusercontent.com/bendusy/future-var-observatory/main/quickstart.sh | bash -s -- --update /your/install/path
+```
+
+查看帮助:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/bendusy/future-var-observatory/main/quickstart.sh | bash -s -- --help
+```
+
+### 开发环境设置
 
 1. 安装依赖
 
@@ -101,8 +140,8 @@ npm run test:e2e      # 仅运行端到端测试
 
 ```powershell
 # 1. 克隆项目
-git clone https://github.com/bendusy/webapp-8zi.git
-cd webapp-8zi
+git clone https://github.com/bendusy/future-var-observatory.git
+cd future-var-observatory
 
 # 2. 运行安装脚本（选择一种方式）
 
@@ -123,8 +162,8 @@ $env:NEXT_PUBLIC_API_URL = "https://api.dify.ai/v1"
 
 ```bash
 # 1. 克隆项目
-git clone https://github.com/bendusy/webapp-8zi.git
-cd webapp-8zi
+git clone https://github.com/bendusy/future-var-observatory.git
+cd future-var-observatory
 
 # 2. 运行安装脚本（选择一种方式）
 
@@ -183,15 +222,23 @@ npm run lint
 ## 项目结构
 
 ```
-webapp-8zi/
+future-var-observatory/
 ├── app/                # Next.js 应用目录
 │   ├── components/     # 共用组件
+│   │   ├── ui/        # UI 组件
+│   │   └── business/  # 业务组件
 │   ├── prediction/     # 预测功能页面
 │   └── providers.tsx   # 全局提供者
+├── docs/              # 项目文档
 ├── service/           # 服务层
 ├── types/             # TypeScript 类型
-└── utils/             # 工具函数
+├── utils/             # 工具函数
+└── scripts/           # 部署脚本
 ```
+
+## 更新日志
+
+详见 [CHANGELOG.md](CHANGELOG.md)
 
 ## 服务管理
 
@@ -205,6 +252,9 @@ node install-service.js
 
 # 卸载服务
 .\uninstall.ps1
+
+# 一键更新（包含代码更新、依赖安装、重新构建）
+.\install.ps1 --update
 ```
 
 ### Linux
@@ -212,17 +262,65 @@ node install-service.js
 使用 PM2 管理：
 
 ```bash
+# 一键更新（包含代码更新、依赖安装、重新构建）
+chmod +x update.sh
+./update.sh
+
 # 查看状态
 pm2 status
 
 # 查看日志
-pm2 logs webapp-8zi
+pm2 logs fvo
 
 # 重启服务
-pm2 restart webapp-8zi
+pm2 restart fvo
 
 # 停止服务
-pm2 stop webapp-8zi
+pm2 stop fvo
+```
+
+## 更新说明
+
+本项目提供了两种更新方式：
+
+### 1. 一键更新（推荐）
+
+Linux/MacOS:
+
+```bash
+./update.sh
+```
+
+Windows:
+
+```powershell
+.\install.ps1 --update
+```
+
+一键更新会自动执行以下操作：
+
+- 保存本地修改（如果有）
+- 拉取最新代码
+- 安装新依赖
+- 重新构建项目
+- 重启服务
+
+### 2. 交互式更新
+
+运行安装脚本并从菜单中选择更新选项：
+
+Linux/MacOS:
+
+```bash
+./install.sh
+# 选择选项 2 或 3
+```
+
+Windows:
+
+```powershell
+.\install.ps1
+# 选择选项 2 或 3
 ```
 
 ## 常见问题
@@ -264,46 +362,14 @@ MIT License
 
 ## 联系方式
 
-- 问题反馈：[GitHub Issues](https://github.com/bendusy/webapp-8zi/issues)
-- 邮件联系：[your-email@example.com]
-- 讨论群组：[QQ群/Discord/...]
+- 问题反馈：[GitHub Issues](https://github.com/bendusy/future-var-observatory/issues)
 
-## API 文档
 
-详细的 API 文档请参见 [docs/api/README.md](docs/api/README.md)
-
-## 开发规范
-
-1. 代码风格
-   - 使用 TypeScript 严格模式
-   - 遵循 ESLint 规则
-   - 使用 Prettier 格式化代码
-
-2. 提交规范
-   - feat: 新功能
-   - fix: 修复问题
-   - docs: 文档变更
-   - style: 代码格式
-   - refactor: 代码重构
-   - test: 测试相关
-   - chore: 其他修改
-
-3. 分支管理
-   - main: 主分支，保持稳定
-   - develop: 开发分支
-   - feature/*: 功能分支
-   - hotfix/*: 紧急修复分支
-
-4. 版本发布流程
-   1. 更新版本号
-   2. 更新 CHANGELOG.md
-   3. 创建发布标签
-   4. 合并至主分支
 
 ## 项目结构说明
 
 ```
-webapp-8zi/
+future-var-observatory/
 ├── app/                # Next.js 应用目录
 │   ├── components/     # 共用组件
 │   │   ├── ui/        # UI 组件
@@ -316,7 +382,3 @@ webapp-8zi/
 ├── utils/             # 工具函数
 └── scripts/           # 部署脚本
 ```
-
-## 更新日志
-
-详见 [CHANGELOG.md](CHANGELOG.md)

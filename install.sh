@@ -4,6 +4,127 @@
 echo "欢迎使用未来变量观测局一键部署脚本"
 echo "=============================="
 
+# 更新代码函数
+update_code() {
+    echo "正在更新代码..."
+    
+    # 检查是否是 git 仓库
+    if [ ! -d ".git" ]; then
+        echo "错误: 当前目录不是 git 仓库"
+        return 1
+    }
+    
+    # 保存当前分支名
+    current_branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+    if [ $? -ne 0 ]; then
+        echo "错误: 无法获取当前分支"
+        return 1
+    }
+    
+    # 保存本地修改
+    if ! git diff --quiet HEAD; then
+        echo "检测到本地修改，正在保存..."
+        git stash
+        local_changes=1
+    fi
+    
+    # 更新远程分支信息
+    echo "更新远程分支信息..."
+    if ! git fetch --all; then
+        echo "错误: 无法更新远程分支信息"
+        return 1
+    fi
+    
+    # 重置到远程分支最新状态
+    echo "重置到远程分支最新状态..."
+    if ! git reset --hard origin/$current_branch; then
+        echo "错误: 无法重置到远程分支"
+        return 1
+    fi
+    
+    # 恢复本地修改
+    if [ "$local_changes" = "1" ]; then
+        echo "恢复本地修改..."
+        git stash pop
+    fi
+    
+    # 检查是否有新的依赖需要安装
+    echo "检查依赖更新..."
+    if [ -f "package.json" ]; then
+        if ! npm install; then
+            echo "尝试使用淘宝镜像重新安装..."
+            npm config set registry https://registry.npmmirror.com
+            if ! npm install; then
+                echo "依赖安装失败，请检查网络连接"
+                return 1
+            fi
+        fi
+    fi
+    
+    # 重新构建项目
+    echo "重新构建项目..."
+    if ! npm run build; then
+        echo "项目构建失败"
+        return 1
+    fi
+    
+    echo "代码更新完成"
+    return 0
+}
+
+# 显示菜单
+show_menu() {
+    echo "请选择要执行的操作："
+    echo "1) 完整部署（安装依赖+配置环境+构建+启动）"
+    echo "2) 更新代码（包含依赖安装和重新构建）"
+    echo "3) 更新代码并重启服务"
+    echo "4) 退出"
+    echo ""
+    read -p "请输入选项 [1-4]: " choice
+    
+    case $choice in
+        1)
+            # 继续执行完整部署流程
+            return 0
+            ;;
+        2)
+            update_code
+            exit $?
+            ;;
+        3)
+            if update_code; then
+                echo "正在重启服务..."
+                pm2 restart fvo
+            fi
+            exit $?
+            ;;
+        4)
+            echo "退出脚本"
+            exit 0
+            ;;
+        *)
+            echo "无效的选项，请重新选择"
+            show_menu
+            ;;
+    esac
+}
+
+# 解析命令行参数
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --update)
+            update_code
+            exit $?
+            ;;
+        *)
+            shift
+            ;;
+    esac
+done
+
+# 显示菜单
+show_menu
+
 # 检查 Dify 服务可用性
 check_dify_service() {
     local app_id=$1
@@ -164,7 +285,7 @@ npm install -g pm2
 
 # 启动服务
 echo "正在启动服务..."
-pm2 start npm --name "webapp-8zi" -- start
+pm2 start npm --name "fvo" -- start
 
 echo "=============================="
 echo "部署完成！"
@@ -172,7 +293,11 @@ echo "服务已在后台启动，访问 http://localhost:33896"
 echo ""
 echo "服务管理命令："
 echo "- 查看状态：pm2 status"
-echo "- 查看日志：pm2 logs webapp-8zi"
-echo "- 重启服务：pm2 restart webapp-8zi"
-echo "- 停止服务：pm2 stop webapp-8zi"
-echo "- 开机自启：pm2 startup && pm2 save" 
+echo "- 查看日志：pm2 logs fvo"
+echo "- 重启服务：pm2 restart fvo"
+echo "- 停止服务：pm2 stop fvo"
+echo "- 开机自启：pm2 startup && pm2 save"
+echo ""
+echo "下次运行脚本可以选择更新代码或重启服务等操作"
+echo "代码更新命令："
+echo "- 更新代码：./install.sh --update" 
