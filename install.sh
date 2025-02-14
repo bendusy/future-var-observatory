@@ -288,16 +288,14 @@ handle_pm2_service() {
     local action=$1
     local service_name=${PM2_APP_NAME:-fvo}
     
-    # 检查 PM2 是否已安装
-    if ! command -v pm2 >/dev/null 2>&1; then
-        echo "正在安装 PM2..."
-        if ! npm install -g pm2; then
-            echo "PM2 安装失败"
-            return 1
-        fi
-    fi
-    
     case $action in
+        "clean")
+            echo "正在清理旧的 PM2 进程..."
+            # 删除旧的 webapp 进程
+            if pm2 list | grep -q "webapp"; then
+                pm2 delete webapp-8zi >/dev/null 2>&1
+            fi
+            ;;
         "start")
             # 检查服务是否已存在
             if pm2 list | grep -q "$service_name"; then
@@ -305,7 +303,8 @@ handle_pm2_service() {
                 pm2 restart "$service_name"
             else
                 echo "正在启动服务..."
-                # 使用配置文件中的设置启动服务
+                # 先清理旧进程
+                handle_pm2_service "clean"
                 pm2 start npm --name "$service_name" \
                     ${PM2_EXEC_MODE:+--exec-mode $PM2_EXEC_MODE} \
                     ${PM2_INSTANCES:+--instances $PM2_INSTANCES} \

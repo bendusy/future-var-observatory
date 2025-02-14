@@ -20,7 +20,15 @@ if [ $? -eq 0 ]; then
     if source ./install.sh > /dev/null 2>&1; then
         handle_pm2_service "restart"
         handle_pm2_service "save"
+        echo "=============================="
         echo "更新完成！"
+        echo "服务已在后台重启，访问 http://localhost:${PORT:-33896}"
+        echo ""
+        echo "服务管理命令："
+        echo "- 查看状态：pm2 status"
+        echo "- 查看日志：pm2 logs fvo"
+        echo "- 重启服务：pm2 restart fvo"
+        echo "- 停止服务：pm2 stop fvo"
     else
         echo "更新失败：无法加载 PM2 处理函数"
         exit 1
