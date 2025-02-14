@@ -22,52 +22,27 @@ if [ -f ".env.local" ]; then
     cp .env.local .env.local.backup
 fi
 
-# 强制删除本地修改，但保护 .env.local
-if [ -d ".git" ]; then
-    echo "重置本地修改..."
-    # 保存 .env.local 文件状态
-    git update-index --skip-worktree .env.local 2>/dev/null || true
-    # 重置其他文件
-    git reset --hard HEAD
-    git clean -fd -e .env.local -e .env.local.backup
+# 完全重置目录（保留 .env.local）
+echo "重置项目..."
+if [ -f ".env.local.backup" ]; then
+    mv .env.local.backup .env.local.temp
 fi
 
-# 如果目录为空或没有 .git，执行完整克隆
-if [ ! -d ".git" ] || [ -z "$(ls -A ${PROJECT_DIR})" ]; then
-    echo "执行完整克隆..."
-    # 临时移动 .env.local 文件（如果存在）
-    if [ -f ".env.local.backup" ]; then
-        mv .env.local.backup .env.local.temp
-    fi
-    
-    rm -rf "${PROJECT_DIR:?}/"*  # 清空目录
-    git clone https://github.com/bendusy/future-var-observatory.git .
-    
-    # 恢复 .env.local 文件
+# 清空目录并克隆
+rm -rf "${PROJECT_DIR:?}/"*
+git clone https://github.com/bendusy/future-var-observatory.git . || {
+    echo "错误: 克隆仓库失败"
+    # 恢复环境文件
     if [ -f ".env.local.temp" ]; then
         mv .env.local.temp .env.local
     fi
-    
-    if [ $? -ne 0 ]; then
-        echo "错误: 克隆仓库失败"
-        exit 1
-    fi
-else
-    # 更新现有仓库
-    echo "更新现有仓库..."
-    git fetch origin main
-    git reset --hard origin/main
-    
-    if [ $? -ne 0 ]; then
-        echo "错误: 更新代码失败"
-        exit 1
-    fi
-fi
+    exit 1
+}
 
-# 恢复 .env.local 文件（如果有备份）
-if [ -f ".env.local.backup" ]; then
-    echo "恢复环境配置文件..."
-    mv .env.local.backup .env.local
+# 恢复环境文件
+if [ -f ".env.local.temp" ]; then
+    mv .env.local.temp .env.local
+    echo "已恢复环境配置文件"
 fi
 
 # 检查并安装依赖
@@ -102,7 +77,7 @@ npm run build || {
     exit 1
 }
 
-# 停止所有相关的 PM2 进程（忽略错误）
+# 停止所有 PM2 进程（忽略错误）
 echo "清理旧服务..."
 pm2 delete all 2>/dev/null || true
 pm2 save

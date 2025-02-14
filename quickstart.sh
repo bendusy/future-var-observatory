@@ -80,7 +80,26 @@ if [ ! -d ".git" ]; then
 else
     if [ "$UPDATE_MODE" = true ]; then
         echo "正在更新代码..."
-        git pull
+        # 备份 .env.local
+        if [ -f ".env.local" ]; then
+            echo "备份环境配置..."
+            cp .env.local .env.local.backup
+        fi
+        
+        # 强制重置并更新
+        echo "重置本地修改..."
+        git reset --hard HEAD
+        git clean -fd -e .env.local -e .env.local.backup
+        
+        echo "拉取最新代码..."
+        git fetch origin main
+        git reset --hard origin/main
+        
+        # 恢复 .env.local
+        if [ -f ".env.local.backup" ]; then
+            echo "恢复环境配置..."
+            mv .env.local.backup .env.local
+        fi
     else
         echo "目录已存在且包含项目文件"
     fi
