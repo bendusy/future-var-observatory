@@ -7,54 +7,39 @@ PROJECT_DIR="/opt/future-var-observatory"
 echo "未来变量观测局一键更新脚本"
 echo "=============================="
 
+# 确保项目目录存在
+mkdir -p "${PROJECT_DIR}"
+
 # 确保在项目目录下
 cd "${PROJECT_DIR}" || {
     echo "错误: 无法进入项目目录 ${PROJECT_DIR}"
     exit 1
 }
 
-# 清理旧的服务 - 不要因为服务不存在就退出
-echo "清理旧服务..."
-if pm2 list | grep -q "fvo"; then
-    pm2 delete fvo
-    pm2 save
+# 如果目录为空，执行完整克隆
+if [ ! -d ".git" ] || [ -z "$(ls -A ${PROJECT_DIR})" ]; then
+    echo "执行完整克隆..."
+    rm -rf "${PROJECT_DIR:?}/"*  # 清空目录
+    git clone https://github.com/bendusy/future-var-observatory.git .
+    if [ $? -ne 0 ]; then
+        echo "错误: 克隆仓库失败"
+        exit 1
+    fi
 else
-    echo "提示: 未发现运行中的服务，继续更新..."
-fi
-
-# 备份本地修改
-echo "备份本地修改..."
-if [ -d ".git" ]; then
-    git stash push -m "backup_before_update" || {
-        echo "警告: 无法备份本地修改，尝试强制更新..."
-        git reset --hard HEAD
-    }
-fi
-
-# 更新代码
-echo "拉取最新代码..."
-if [ ! -d ".git" ]; then
-    echo "初始化 Git 仓库..."
-    git init
-    git remote add origin https://github.com/bendusy/future-var-observatory.git
-fi
-
-git fetch origin main || {
-    echo "错误: 无法获取远程代码"
-    exit 1
-}
-
-git reset --hard origin/main || {
-    echo "错误: 无法重置到最新代码"
-    exit 1
-}
-
-# 如果之前有stash，尝试恢复
-if git stash list | grep -q "backup_before_update"; then
-    echo "恢复本地修改..."
-    git stash pop || {
-        echo "警告: 恢复本地修改时发生冲突，继续执行更新..."
-    }
+    # 如果目录不为空，保存本地修改并更新
+    echo "更新现有仓库..."
+    
+    # 重置任何未提交的更改
+    git reset --hard HEAD
+    
+    # 拉取最新代码
+    git fetch origin main
+    git reset --hard origin/main
+    
+    if [ $? -ne 0 ]; then
+        echo "错误: 更新代码失败"
+        exit 1
+    fi
 fi
 
 # 检查并安装依赖
@@ -88,6 +73,12 @@ npm run build || {
     echo "错误: 项目构建失败"
     exit 1
 }
+
+# 停止所有相关的 PM2 进程
+echo "清理旧服务..."
+pm2 delete fvo 2>/dev/null || true
+pm2 delete webapp-8zi 2>/dev/null || true
+pm2 save
 
 # 启动服务
 echo "启动服务..."
