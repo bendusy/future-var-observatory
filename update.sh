@@ -44,43 +44,44 @@ if [ $? -eq 0 ]; then
     fi
     
     echo "=============================="
-    echo "更新完成！"
-    # 获取公网 IP
-    PUBLIC_IP=$(curl -s http://ipv4.icanhazip.com || curl -s http://api.ipify.org)
-    if [ -n "$PUBLIC_IP" ]; then
-        echo "服务已在后台重启，访问 http://${PUBLIC_IP}:${PORT:-33896}"
-    else
-        echo "服务已在后台重启，访问 http://<服务器IP>:${PORT:-33896}"
-    fi
+    echo "✨ 更新完成！"
     echo ""
-    echo "更新后检查步骤："
-    echo "1. 环境变量检查："
+    echo "🔍 检查结果："
+    echo "1. 环境变量："
     if [ -f ".env.example" ] && [ -f ".env.local" ]; then
         if ! cmp -s ".env.example" ".env.local"; then
-            echo "   - [需要关注] 发现环境变量有更新"
+            echo "   ⚠️  需要更新"
             echo "   - 请对比 .env.example 和 .env.local 文件"
             echo "   - 手动添加新的配置项到 .env.local"
         else
-            echo "   - [已确认] 环境变量无需更新"
+            echo "   ✓ 无需更新"
         fi
     fi
-    echo "2. 服务状态检查："
+    
+    echo "2. 服务状态："
     if pm2 describe fvo | grep -q "online"; then
-        echo "   - [正常] PM2 服务运行中"
+        echo "   ✓ PM2 服务正常运行"
     else
-        echo "   - [异常] PM2 服务可能未正常运行"
-        echo "   - 请检查日志: pm2 logs fvo"
+        echo "   ⚠️  PM2 服务异常"
+        echo "   - 请执行 pm2 logs fvo 查看日志"
     fi
-    echo "3. 后续操作："
-    echo "   - 访问上述地址确认服务是否正常"
-    echo "   - 如有异常请查看日志: pm2 logs fvo"
-    echo "   - 需要时可重启服务: pm2 restart fvo"
+    
     echo ""
-    echo "服务管理命令："
-    echo "- 查看状态：pm2 status"
-    echo "- 查看日志：pm2 logs fvo"
-    echo "- 重启服务：pm2 restart fvo"
-    echo "- 停止服务：pm2 stop fvo"
+    echo "🌐 访问服务："
+    PUBLIC_IP=$(curl -s http://ipv4.icanhazip.com || curl -s http://api.ipify.org)
+    if [ -n "$PUBLIC_IP" ]; then
+        echo "   http://${PUBLIC_IP}:${PORT:-33896}"
+    else
+        echo "   http://<服务器IP>:${PORT:-33896}"
+    fi
+    echo ""
+    echo "🛠  常用命令："
+    echo "   pm2 status     # 查看服务状态"
+    echo "   pm2 logs fvo   # 查看服务日志"
+    echo "   pm2 restart fvo # 重启服务"
+    echo "   pm2 stop fvo   # 停止服务"
+    echo ""
+    echo "=============================="
 else
     echo "更新失败，请检查错误信息"
     exit 1
