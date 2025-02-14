@@ -13,45 +13,59 @@ cd "${PROJECT_DIR}" || {
     exit 1
 }
 
-# 完全清理旧的服务
+# 清理旧的服务 - 不要因为服务不存在就退出
 echo "清理旧服务..."
 if pm2 list | grep -q "fvo"; then
     pm2 delete fvo
     pm2 save
+else
+    echo "提示: 未发现运行中的服务，继续更新..."
 fi
 
 # 备份本地修改
 echo "备份本地修改..."
-git stash push -m "backup_before_update" || {
-    echo "错误: 无法备份本地修改"
-    exit 1
-}
+if [ -d ".git" ]; then
+    git stash push -m "backup_before_update" || {
+        echo "警告: 无法备份本地修改，尝试强制更新..."
+        git reset --hard HEAD
+    }
+fi
 
 # 更新代码
 echo "拉取最新代码..."
+if [ ! -d ".git" ]; then
+    echo "初始化 Git 仓库..."
+    git init
+    git remote add origin https://github.com/bendusy/future-var-observatory.git
+fi
+
 git fetch origin main || {
     echo "错误: 无法获取远程代码"
-    git stash pop
     exit 1
 }
 
 git reset --hard origin/main || {
     echo "错误: 无法重置到最新代码"
-    git stash pop
     exit 1
 }
 
-# 尝试恢复本地修改
-echo "恢复本地修改..."
-git stash pop || {
-    echo "警告: 恢复本地修改时发生冲突，请手动解决"
-    echo "您可以查看 git status 了解详情"
-}
+# 如果之前有stash，尝试恢复
+if git stash list | grep -q "backup_before_update"; then
+    echo "恢复本地修改..."
+    git stash pop || {
+        echo "警告: 恢复本地修改时发生冲突，继续执行更新..."
+    }
+fi
 
-# 检查 PM2 服务
+# 检查并安装依赖
+echo "检查依赖..."
+if ! command -v npm &> /dev/null; then
+    echo "错误: npm 未安装"
+    exit 1
+fi
+
 if ! command -v pm2 &> /dev/null; then
-    echo "错误: PM2 未安装"
-    echo "正在安装 PM2..."
+    echo "安装 PM2..."
     npm install -g pm2 || {
         echo "错误: PM2 安装失败"
         exit 1
