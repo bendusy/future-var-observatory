@@ -29,7 +29,13 @@ if [ $? -eq 0 ]; then
     
     echo "=============================="
     echo "更新完成！"
-    echo "服务已在后台重启，访问 http://localhost:${PORT:-33896}"
+    # 获取公网 IP
+    PUBLIC_IP=$(curl -s http://ipv4.icanhazip.com || curl -s http://api.ipify.org)
+    if [ -n "$PUBLIC_IP" ]; then
+        echo "服务已在后台重启，访问 http://${PUBLIC_IP}:${PORT:-33896}"
+    else
+        echo "服务已在后台重启，访问 http://<服务器IP>:${PORT:-33896}"
+    fi
     echo ""
     echo "服务管理命令："
     echo "- 查看状态：pm2 status"

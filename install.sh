@@ -310,9 +310,13 @@ if [ "${PM2_STARTUP_ENABLED}" = "true" ]; then
     pm2 startup && pm2 save
 fi
 
-echo "=============================="
-echo "部署完成！"
-echo "服务已在后台启动，访问 http://localhost:33896"
+# 获取公网 IP
+PUBLIC_IP=$(curl -s http://ipv4.icanhazip.com || curl -s http://api.ipify.org)
+if [ -n "$PUBLIC_IP" ]; then
+    echo "服务已在后台启动，访问 http://${PUBLIC_IP}:${PORT:-33896}"
+else
+    echo "服务已在后台启动，访问 http://<服务器IP>:${PORT:-33896}"
+fi
 echo ""
 echo "服务管理命令："
 echo "- 查看状态：pm2 status"
