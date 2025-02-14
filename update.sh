@@ -7,41 +7,16 @@ PROJECT_DIR="/opt/future-var-observatory"
 echo "未来变量观测局一键更新脚本"
 echo "=============================="
 
-# 确保项目目录存在
-mkdir -p "${PROJECT_DIR}"
-
 # 确保在项目目录下
 cd "${PROJECT_DIR}" || {
     echo "错误: 无法进入项目目录 ${PROJECT_DIR}"
     exit 1
 }
 
-# 备份 .env.local 文件（如果存在）
-if [ -f ".env.local" ]; then
-    echo "备份环境配置文件..."
-    cp .env.local .env.local.backup
-fi
-
-# 完全重置目录（保留 .env.local）
-echo "重置项目..."
+# 恢复 .env.local 文件（如果存在备份）
 if [ -f ".env.local.backup" ]; then
-    mv .env.local.backup .env.local.temp
-fi
-
-# 清空目录并克隆
-rm -rf "${PROJECT_DIR:?}/"*
-git clone https://github.com/bendusy/future-var-observatory.git . || {
-    echo "错误: 克隆仓库失败"
-    # 恢复环境文件
-    if [ -f ".env.local.temp" ]; then
-        mv .env.local.temp .env.local
-    fi
-    exit 1
-}
-
-# 恢复环境文件
-if [ -f ".env.local.temp" ]; then
-    mv .env.local.temp .env.local
+    echo "恢复环境配置文件..."
+    mv .env.local.backup .env.local
     echo "已恢复环境配置文件"
 fi
 

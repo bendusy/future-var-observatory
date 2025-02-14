@@ -22,7 +22,7 @@ show_help() {
     echo ""
     echo "示例:"
     echo "  $0                    # 在当前目录下的 future-var-observatory 中安装"
-    echo "  $0 /opt/fvo          # 在指定目录中安装"
+    echo "  $0 /opt/fvo           # 在指定目录中安装"
     echo "  $0 --update           # 更新当前目录下的安装"
     echo "  $0 --update /opt/fvo  # 更新指定目录中的安装"
 }
@@ -42,7 +42,7 @@ while [[ $# -gt 0 ]]; do
             shift
             ;;
         *)
-            if [ -z "$2" ] && [[ ! $1 =~ ^- ]]; then
+            if [[ ! $1 =~ ^- ]]; then
                 INSTALL_DIR="$1"
             fi
             shift
