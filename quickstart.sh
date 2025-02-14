@@ -1,7 +1,16 @@
 #!/bin/bash
 
-# 项目目录
-INSTALL_DIR="future-var-observatory"
+# 项目目录，优先取命令行参数；若参数为 --update 或 --help，则默认使用 future-var-observatory
+INSTALL_DIR="$1"
+if [[ "$INSTALL_DIR" == --update || "$INSTALL_DIR" == --help ]]; then
+    INSTALL_DIR="future-var-observatory"
+else
+    if [[ "$INSTALL_DIR" =~ ^/ ]]; then
+        :
+    else
+        INSTALL_DIR="$(pwd)/$INSTALL_DIR"
+    fi
+fi
 
 # 日志文件路径
 LOG_FILE="${INSTALL_DIR}/deploy.log"
@@ -109,7 +118,7 @@ else
         # 恢复 .env.local 文件
         if [ -f ".env.local.backup" ]; then
             log_info "恢复环境配置文件..."
-            mv .env.local.backup .env.local | tee -a "$LOG_FILE"
+            mv .env.local.backup .env.local | tee -a "$LOG_FILE" || { log_error "恢复 .env.local 失败"; exit 1; }
             log_info "已恢复环境配置文件"
         fi
     else
