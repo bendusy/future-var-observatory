@@ -16,24 +16,25 @@ fi
 # 如果更新成功，重启服务
 if [ $? -eq 0 ]; then
     echo "正在重启服务..."
-    # 加载 PM2 工具函数
-    if [ -f "./pm2-utils.sh" ]; then
-        source ./pm2-utils.sh
-        handle_pm2_service "restart"
-        handle_pm2_service "save"
-        echo "=============================="
-        echo "更新完成！"
-        echo "服务已在后台重启，访问 http://localhost:${PORT:-33896}"
-        echo ""
-        echo "服务管理命令："
-        echo "- 查看状态：pm2 status"
-        echo "- 查看日志：pm2 logs fvo"
-        echo "- 重启服务：pm2 restart fvo"
-        echo "- 停止服务：pm2 stop fvo"
-    else
-        echo "错误: PM2 工具函数文件不存在"
+    # 重启 PM2 服务
+    if ! pm2 describe fvo > /dev/null; then
+        echo "错误: PM2 服务不存在，请先运行安装脚本"
         exit 1
     fi
+    pm2 restart fvo
+    if [ "${PM2_STARTUP_ENABLED}" = "true" ]; then
+        pm2 save
+    fi
+    
+    echo "=============================="
+    echo "更新完成！"
+    echo "服务已在后台重启，访问 http://localhost:${PORT:-33896}"
+    echo ""
+    echo "服务管理命令："
+    echo "- 查看状态：pm2 status"
+    echo "- 查看日志：pm2 logs fvo"
+    echo "- 重启服务：pm2 restart fvo"
+    echo "- 停止服务：pm2 stop fvo"
 else
     echo "更新失败，请检查错误信息"
     exit 1

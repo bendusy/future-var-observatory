@@ -114,6 +114,7 @@ while [[ $# -gt 0 ]]; do
     case $1 in
         --update)
             update_code
+            # 直接返回更新结果，不执行后续的安装步骤
             exit $?
             ;;
         *)
@@ -283,12 +284,21 @@ npm run build
 echo "正在安装 PM2..."
 npm install -g pm2
 
-# 加载 PM2 工具函数
-source ./pm2-utils.sh
-
 # 启动服务
 echo "正在启动服务..."
-handle_pm2_service "start"
+pm2 start npm --name "fvo" \
+    ${PM2_EXEC_MODE:+--exec-mode $PM2_EXEC_MODE} \
+    ${PM2_INSTANCES:+--instances $PM2_INSTANCES} \
+    ${PM2_WATCH:+--watch} \
+    ${PM2_MAX_MEMORY_RESTART:+--max-memory-restart $PM2_MAX_MEMORY_RESTART} \
+    ${PM2_CWD:+--cwd $PM2_CWD} \
+    -- start
+
+# 如果启用了开机自启
+if [ "${PM2_STARTUP_ENABLED}" = "true" ]; then
+    echo "正在设置开机自启..."
+    pm2 startup && pm2 save
+fi
 
 echo "=============================="
 echo "部署完成！"
