@@ -41,10 +41,15 @@ else
     INSTALL_DIR="$(pwd)/$INSTALL_DIR"
 fi
 
+# 输出转换后的安装目录（便于调试）
+echo "安装目录：$INSTALL_DIR"
+
 # 日志文件路径
 LOG_FILE="${INSTALL_DIR}/deploy.log"
 
-# 根据模式确保安装目录：更新模式下目录必须存在；安装模式下自动创建目录
+# 根据模式确保安装目录：
+# - 更新模式下目录必须存在
+# - 安装模式下自动创建目录
 if [ "$UPDATE_MODE" = true ]; then
     if [ ! -d "$INSTALL_DIR" ]; then
         echo "目录 $INSTALL_DIR 不存在，无法更新" >&2
@@ -53,6 +58,9 @@ if [ "$UPDATE_MODE" = true ]; then
 else
     mkdir -p "$INSTALL_DIR" || { echo "无法创建目录 $INSTALL_DIR" >&2; exit 1; }
 fi
+
+# 切换到安装目录，保证后续操作在正确位置进行
+cd "$INSTALL_DIR" || { echo "无法进入目录 $INSTALL_DIR"; exit 1; }
 
 # 定义日志记录函数
 log_info() {
@@ -78,10 +86,14 @@ check_command git
 check_command node
 check_command npm
 
-# 备份 .env.local 文件（如果存在且处于更新模式）
-if [ "$UPDATE_MODE" = true ] && [ -f ".env.local" ]; then
-    log_info "备份环境配置文件..."
-    cp .env.local .env.local.backup || { log_error "备份 .env.local 失败"; exit 1; }
+# 备份 .env.local 文件（如果处于更新模式）
+if [ "$UPDATE_MODE" = true ]; then
+    if [ -f "../.env.local" ]; then
+        log_info "备份环境配置文件..."
+        cp ../.env.local .env.local.backup || { log_error "备份 .env.local 失败"; exit 1; }
+    else
+        log_info "未检测到 .env.local，跳过备份"
+    fi
 fi
 
 # 克隆或更新代码
@@ -107,8 +119,10 @@ else
         # 恢复 .env.local 文件
         if [ -f ".env.local.backup" ]; then
             log_info "恢复环境配置文件..."
-            mv .env.local.backup .env.local | tee -a "$LOG_FILE" || { log_error "恢复 .env.local 失败"; exit 1; }
+            mv .env.local.backup ../.env.local || { log_error "恢复 .env.local 失败"; exit 1; }
             log_info "已恢复环境配置文件"
+        else
+            log_info "未检测到 .env.local.backup，跳过恢复"
         fi
     else
         log_info "目录已存在且包含项目文件"
